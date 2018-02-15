@@ -1,0 +1,18 @@
+<Project>
+  <PropertyGroup>
+    <Product>OpenSlideNET</Product>
+    <Authors>YiGolden</Authors>
+    <Copyright>Copyright (c) 2018 yigolden</Copyright>
+    <Version>1.0.0-preview1-18021601</Version>
+    <PackageTags>openslide</PackageTags>
+    <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/yigolden/OpenSlideNET</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/yigolden/OpenSlideNET.git</RepositoryUrl>
+
+    <!-- Some dependent libraries havs not been strong signed -->
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)build\key.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>false</SignAssembly>
+    <PublicSign Condition="'$(OS)' != 'Windows_NT'">false</PublicSign>
+  </PropertyGroup>
+</Project>

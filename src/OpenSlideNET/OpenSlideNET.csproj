@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory), dir.props))\dir.props" />
+  <PropertyGroup>
+    <PackageId>OpenSlideNET</PackageId>
+    <Title>OpenSlideNET</Title>
+    <TargetFrameworks>netstandard1.3;netstandard2.0</TargetFrameworks>
+    <Description>.NET bindings for OpenSlide.</Description>
+  </PropertyGroup>
+
+</Project>
