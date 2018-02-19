@@ -14,10 +14,6 @@ namespace OpenSlideNET
         public static string LibraryVersion => Interop.GetVersion();
 
         private IntPtr _handle;
-        private int _retainedCount;
-        private bool _disposed;
-        // Don't make the SpinLock variable readonly because it is being mutated.
-        private SpinLock _lock = new SpinLock();
         private FileInfo _fileInfo;
 
         internal OpenSlideImage(IntPtr handle, FileInfo fileInfo)
@@ -431,162 +427,6 @@ namespace OpenSlideNET
             return Interop.GetBestLevelForDownsample(_handle, downsample);
         }
 
-        #region IDisposable Support
-
-        private void EnsureNotDisposed()
-        {
-            bool lockTaken = false;
-            _lock.Enter(ref lockTaken);
-            try
-            {
-                if (_disposed && _retainedCount == 0)
-                {
-                    throw new ObjectDisposedException(nameof(OpenSlideImage));
-                }
-            }
-            finally
-            {
-                if (lockTaken)
-                {
-                    _lock.Exit();
-                }
-            }
-        }
-
-        public bool IsDisposed
-        {
-            get
-            {
-                bool lockTaken = false;
-                _lock.Enter(ref lockTaken);
-                try
-                {
-                    return _disposed && _retainedCount == 0;
-                }
-                finally
-                {
-                    if (lockTaken)
-                    {
-                        _lock.Exit();
-                    }
-                }
-            }
-        }
-
-        private void Dispose(bool disposing) // instead of protected virtual
-        {
-            bool lockTaken = false;
-            _lock.Enter(ref lockTaken);
-            try
-            {
-                _disposed = true;
-                if (_retainedCount == 0 && _handle != IntPtr.Zero)
-                {
-                    Interop.Close(_handle);
-                    _handle = IntPtr.Zero;
-                }
-            }
-            finally
-            {
-                if (lockTaken)
-                {
-                    _lock.Exit();
-                }
-            }
-        }
-
-        // 仅当以上 Dispose(bool disposing) 拥有用于释放未托管资源的代码时才替代终结器。
-        ~OpenSlideImage()
-        {
-            // 请勿更改此代码。将清理代码放入以上 Dispose(bool disposing) 中。
-            Dispose(false);
-        }
-
-        // 添加此代码以正确实现可处置模式。
-        public void Dispose()
-        {
-            // 请勿更改此代码。将清理代码放入以上 Dispose(bool disposing) 中。
-            Dispose(true);
-            // 如果在以上内容中替代了终结器，则取消注释以下行。
-            GC.SuppressFinalize(this);
-        }
-        #endregion
-
-        #region IRetainable Support
-
-        public bool IsRetained
-        {
-            get
-            {
-                bool lockTaken = false;
-                _lock.Enter(ref lockTaken);
-                try
-                {
-                    return _retainedCount > 0;
-                }
-                finally
-                {
-                    if (lockTaken)
-                    {
-                        _lock.Exit();
-                    }
-                }
-            }
-        }
-
-        public void Retain()
-        {
-            bool lockTaken = false;
-            _lock.Enter(ref lockTaken);
-            try
-            {
-                if (_retainedCount == 0 && _disposed)
-                {
-                    throw new ObjectDisposedException(nameof(OpenSlideImage));
-                }
-                _retainedCount++;
-            }
-            finally
-            {
-                if (lockTaken)
-                {
-                    _lock.Exit();
-                }
-            }
-        }
-
-        public bool Release()
-        {
-            bool lockTaken = false;
-            _lock.Enter(ref lockTaken);
-            try
-            {
-                if (_retainedCount > 0)
-                {
-                    _retainedCount--;
-                    if (_retainedCount == 0)
-                    {
-                        if (_disposed && _handle != IntPtr.Zero)
-                        {
-                            Interop.Close(_handle);
-                            _handle = IntPtr.Zero;
-                        }
-                        return true;
-                    }
-                }
-            }
-            finally
-            {
-                if (lockTaken)
-                {
-                    _lock.Exit();
-                }
-            }
-            return false;
-        }
-
-        #endregion
-
 
         public readonly struct ImageDimemsions
         {
@@ -609,5 +449,44 @@ namespace OpenSlideNET
             }
 
         }
+
+        #region IDisposable Support
+
+        public bool IsDisposed => _handle == IntPtr.Zero;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void EnsureNotDisposed()
+        {
+            if (_handle == IntPtr.Zero)
+            {
+                throw new ObjectDisposedException(nameof(OpenSlideImage));
+            }
+        }
+
+        void Dispose(bool disposing)
+        {
+            var handle = Interlocked.Exchange(ref _handle, IntPtr.Zero);
+            if (handle != IntPtr.Zero)
+            {
+                Interop.Close(handle);
+            }
+        }
+
+        // 仅当以上 Dispose(bool disposing) 拥有用于释放未托管资源的代码时才替代终结器。
+        ~OpenSlideImage()
+        {
+            // 请勿更改此代码。将清理代码放入以上 Dispose(bool disposing) 中。
+            Dispose(false);
+        }
+
+        // 添加此代码以正确实现可处置模式。
+        public void Dispose()
+        {
+            // 请勿更改此代码。将清理代码放入以上 Dispose(bool disposing) 中。
+            Dispose(true);
+            // 如果在以上内容中替代了终结器，则取消注释以下行。
+            GC.SuppressFinalize(this);
+        }
+        #endregion
     }
 }
