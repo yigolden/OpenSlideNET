@@ -24,7 +24,7 @@ namespace OpenSlideNET.Tests
         public void TestLibraryVersion()
         {
             string version = OpenSlideImage.LibraryVersion;
-            Assert.Null(version);
+            Assert.NotNull(version);
             Assert.NotEqual(string.Empty, version);
         }
 
