@@ -1,6 +1,8 @@
 # OpenSlideNET
 .NET bindings for OpenSlide (http://openslide.org/).
 
+[![Build Status](https://travis-ci.org/yigolden/OpenSlideNET.svg?branch=master)](https://travis-ci.org/yigolden/OpenSlideNET)
+
 # Requirements
 The following package are needed if you want to only use this library.
 * [OpenSlide](http://openslide.org/download/) >= 3.4.0
