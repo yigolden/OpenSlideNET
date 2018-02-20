@@ -1,4 +1,3 @@
-language: csharp
 os: linux
 dist: trusty
  
