@@ -344,10 +344,20 @@ namespace OpenSlideNET
             }
 
             var data = new byte[dimemsions.Width * dimemsions.Height * 4];
-            ReadAssociatedImage(ref data[0], name);
+            if (data.Length > 0)
+            {
+                ReadAssociatedImage(name, ref data[0]);
+            }
             return data;
         }
-        private unsafe void ReadAssociatedImage(ref byte data, string name)
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public void DangerousReadAssociatedImageToBuffer(string name, ref byte buffer)
+        {
+            EnsureNotDisposed();
+
+            ReadAssociatedImage(name, ref buffer);
+        }
+        private unsafe void ReadAssociatedImage(string name, ref byte data)
         {
             fixed (void* pdata = &data)
             {
@@ -359,7 +369,7 @@ namespace OpenSlideNET
         public byte[] ReadRegionToArray(int level, long x, long y, long width, long height)
         {
             EnsureNotDisposed();
-            
+
             if (width < 0)
                 throw new ArgumentOutOfRangeException(nameof(width));
             if (height < 0)
