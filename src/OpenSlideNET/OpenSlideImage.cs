@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
@@ -190,8 +189,6 @@ namespace OpenSlideNET
         {
             get
             {
-                EnsureNotDisposed();
-
                 return this[Interop.OpenSlidePropertyNameComment];
             }
         }
@@ -200,8 +197,6 @@ namespace OpenSlideNET
         {
             get
             {
-                EnsureNotDisposed();
-
                 return this[Interop.OpenSlidePropertyNameVendor];
             }
         }
@@ -210,8 +205,6 @@ namespace OpenSlideNET
         {
             get
             {
-                EnsureNotDisposed();
-
                 return this[Interop.OpenSlidePropertyNameQuickHash1];
             }
         }
@@ -220,8 +213,6 @@ namespace OpenSlideNET
         {
             get
             {
-                EnsureNotDisposed();
-
                 return this[Interop.OpenSlidePropertyNameBackgroundColor];
             }
         }
@@ -230,8 +221,6 @@ namespace OpenSlideNET
         {
             get
             {
-                EnsureNotDisposed();
-
                 return this[Interop.OpenSlidePropertyNameObjectivePower];
             }
         }
@@ -240,8 +229,6 @@ namespace OpenSlideNET
         {
             get
             {
-                EnsureNotDisposed();
-
                 return this[Interop.OpenSlidePropertyNameMPPX];
             }
         }
@@ -250,51 +237,55 @@ namespace OpenSlideNET
         {
             get
             {
-                EnsureNotDisposed();
-
                 return this[Interop.OpenSlidePropertyNameMPPY];
             }
         }
 
-        public long BoundsX
+        public long? BoundsX
         {
             get
             {
-                EnsureNotDisposed();
-
-                return OpenSlideImagePropertyExtensions.GetProperty(this, Interop.OpenSlidePropertyNameBoundsX, (long)0);
+                if (TryGetProperty(Interop.OpenSlidePropertyNameBoundsX, out string value) && long.TryParse(value, out long result))
+                {
+                    return result;
+                }
+                return null;
             }
         }
 
-        public long BoundsY
+        public long? BoundsY
         {
             get
             {
-                EnsureNotDisposed();
-
-                return OpenSlideImagePropertyExtensions.GetProperty(this, Interop.OpenSlidePropertyNameBoundsY, (long)0);
+                if (TryGetProperty(Interop.OpenSlidePropertyNameBoundsY, out string value) && long.TryParse(value, out long result))
+                {
+                    return result;
+                }
+                return null;
             }
         }
 
-        public long BoundsWidth
+        public long? BoundsWidth
         {
             get
             {
-                EnsureNotDisposed();
-                EnsureDimemsionsCached();
-
-                return OpenSlideImagePropertyExtensions.GetProperty(this, Interop.OpenSlidePropertyNameBoundsWidth, (long)0);
+                if (TryGetProperty(Interop.OpenSlidePropertyNameBoundsWidth, out string value) && long.TryParse(value, out long result))
+                {
+                    return result;
+                }
+                return null;
             }
         }
 
-        public long BoundsHeight
+        public long? BoundsHeight
         {
             get
             {
-                EnsureNotDisposed();
-                EnsureDimemsionsCached();
-
-                return OpenSlideImagePropertyExtensions.GetProperty(this, Interop.OpenSlidePropertyNameBoundsHeight, (long)0);
+                if (TryGetProperty(Interop.OpenSlidePropertyNameBoundsHeight, out string value) && long.TryParse(value, out long result))
+                {
+                    return result;
+                }
+                return null;
             }
         }
 
@@ -314,59 +305,35 @@ namespace OpenSlideNET
         public bool TryGetProperty(string name, out string value)
         {
             EnsureNotDisposed();
-            EnsurePropertyListAcquired();
 
-            if (_properties.Contains(name))
-            {
-                value = Interop.GetPropertyValue(_handle, name);
-                return value != null;
-            }
-            value = null;
-            return false;
-        }
-
-        private string[] _associatedImages;
-        private void EnsureAssociatedImageListAcquired()
-        {
-            if (_associatedImages == null)
-            {
-                _associatedImages = Interop.GetAssociatedImageNames(_handle);
-                ThrowHelper.CheckAndThrowError(_handle);
-            }
+            value = Interop.GetPropertyValue(_handle, name);
+            return value != null;
         }
 
         public IReadOnlyCollection<string> GetAllAssociatedImageNames()
         {
             EnsureNotDisposed();
 
-            _associatedImages = Interop.GetAssociatedImageNames(_handle);
+            var associatedImages = Interop.GetAssociatedImageNames(_handle);
             ThrowHelper.CheckAndThrowError(_handle);
-            return _associatedImages;
+            return associatedImages;
         }
 
         public bool TryGetAssociatedImageDimemsions(string name, out ImageDimemsions dims)
         {
             EnsureNotDisposed();
-            EnsureAssociatedImageListAcquired();
 
-            if (_associatedImages.Contains(name))
+            Interop.GetAssociatedImageDimemsions(_handle, name, out long w, out long h);
+            if (w != -1 && h != -1)
             {
-                Interop.GetAssociatedImageDimemsions(_handle, name, out long w, out long h);
-                if (w != -1 && h != -1)
-                {
-                    dims = new ImageDimemsions(w, h);
-                    return true;
-                }
+                dims = new ImageDimemsions(w, h);
+                return true;
             }
 
             dims = default;
             return false;
         }
 
-        public byte[] ReadAssociatedImageToArray(string name)
-        {
-            return ReadAssociatedImageToArray(name, out var _);
-        }
         public byte[] ReadAssociatedImageToArray(string name, out ImageDimemsions dimemsions)
         {
             EnsureNotDisposed();
