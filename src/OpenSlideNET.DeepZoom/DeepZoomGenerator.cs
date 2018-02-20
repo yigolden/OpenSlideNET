@@ -49,12 +49,12 @@ namespace OpenSlideNET
             if (limitBounds)
             {
                 // Level 0 coordinate offset
-                _l0_offset = (image.BoundsX, image.BoundsY);
+                _l0_offset = (image.BoundsX ?? 0, image.BoundsY ?? 0);
                 // Slide level dimensions scale factor in each axis
 
-                long boundsWidth = image.BoundsWidth;
+                long boundsWidth = image.BoundsWidth ?? 0;
                 boundsWidth = boundsWidth == 0 ? image.Width : boundsWidth;
-                long boundsHeight = image.BoundsHeight;
+                long boundsHeight = image.BoundsHeight ?? 0;
                 boundsHeight = boundsHeight == 0 ? image.Height : boundsHeight;
                 (double width, double height) _size_scale = (boundsWidth / (double)image.Width, boundsHeight / (double)image.Height);
                 // Dimensions of active area
