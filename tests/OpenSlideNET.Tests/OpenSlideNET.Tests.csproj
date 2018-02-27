@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <IsPackable>false</IsPackable>
-	<RuntimeFrameworkVersion Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">2.0.5</RuntimeFrameworkVersion> 
+    <RuntimeFrameworkVersion Condition=" '$(TargetFramework)' == 'netcoreapp2.0' ">2.0.5</RuntimeFrameworkVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,7 +18,7 @@
     <ProjectReference Include="..\..\src\OpenSlideNET.DeepZoom\OpenSlideNET.DeepZoom.csproj" />
     <ProjectReference Include="..\..\src\OpenSlideNET\OpenSlideNET.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Update="Assets\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
