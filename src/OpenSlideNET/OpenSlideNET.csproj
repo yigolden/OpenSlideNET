@@ -6,5 +6,9 @@
     <TargetFrameworks>netstandard1.3;netstandard2.0</TargetFrameworks>
     <Description>.NET bindings for OpenSlide.</Description>
   </PropertyGroup>
+  
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
+    <PackageReference Include="System.ValueTuple" Version="4.4.0" />
+  </ItemGroup>
 
 </Project>

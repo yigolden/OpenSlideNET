@@ -7,7 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{6788B68F-3BB
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenSlideNET", "src\OpenSlideNET\OpenSlideNET.csproj", "{9C3F8F32-2B18-40FC-B7A5-E6E1E4A72A0E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenSlideNET.DeepZoom", "src\OpenSlideNET.DeepZoom\OpenSlideNET.DeepZoom.csproj", "{E58D1AC3-130A-45F0-A900-B17E10B1DD93}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OpenSlideNET.ImageExtensions", "src\OpenSlideNET.ImageExtensions\OpenSlideNET.ImageExtensions.csproj", "{E58D1AC3-130A-45F0-A900-B17E10B1DD93}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "example", "example", "{1D3535DE-2C93-4F60-BEDF-99DD4998B9F2}"
 EndProject
