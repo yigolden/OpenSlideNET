@@ -3,7 +3,7 @@
     <Product>OpenSlideNET</Product>
     <Authors>YiGolden</Authors>
     <Copyright>Copyright (c) 2018 yigolden</Copyright>
-    <Version>1.0.0-preview1-18021601</Version>
+    <Version>1.0.0-preview2-18022701</Version>
     <PackageTags>openslide</PackageTags>
     <PackageLicenseUrl>https://opensource.org/licenses/MIT</PackageLicenseUrl>
     <PackageProjectUrl>https://github.com/yigolden/OpenSlideNET</PackageProjectUrl>
