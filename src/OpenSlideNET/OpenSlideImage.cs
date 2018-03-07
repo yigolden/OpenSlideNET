@@ -425,6 +425,15 @@ namespace OpenSlideNET
                 height = _height;
             }
 
+            public static implicit operator (long Width, long Height)(ImageDimemsions dimemsions)
+            {
+                return (Width: dimemsions._width, Height: dimemsions._height);
+            }
+
+            public static explicit operator ImageDimemsions(ValueTuple<long, long> dimemsions)
+            {
+                return new ImageDimemsions(dimemsions.Item1, dimemsions.Item2);
+            }
         }
 
         #region IDisposable Support
