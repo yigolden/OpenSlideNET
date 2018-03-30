@@ -87,23 +87,11 @@ namespace OpenSlideNET.Tests
             using (var osr = OpenSlideImage.Open(Path.Combine(currentDir, "Assets", "boxes.tiff")))
             {
                 Assert.Equal(4, osr.LevelCount);
-                long width, height;
 
-                osr.GetLevelDimemsions(0).Deconstruct(out width, out height);
-                Assert.Equal(300, width);
-                Assert.Equal(250, height);
-
-                osr.GetLevelDimemsions(1).Deconstruct(out width, out height);
-                Assert.Equal(150, width);
-                Assert.Equal(125, height);
-
-                osr.GetLevelDimemsions(2).Deconstruct(out width, out height);
-                Assert.Equal(75, width);
-                Assert.Equal(62, height);
-
-                osr.GetLevelDimemsions(3).Deconstruct(out width, out height);
-                Assert.Equal(37, width);
-                Assert.Equal(31, height);
+                Assert.Equal<ValueTuple<long, long>>((300, 250), osr.GetLevelDimemsions(0));
+                Assert.Equal<ValueTuple<long, long>>((150, 125), osr.GetLevelDimemsions(1));
+                Assert.Equal<ValueTuple<long, long>>((75, 62), osr.GetLevelDimemsions(2));
+                Assert.Equal<ValueTuple<long, long>>((37, 31), osr.GetLevelDimemsions(3));
 
                 Assert.Equal(1, osr.GetLevelDownsamples(0));
                 Assert.Equal(2, osr.GetLevelDownsamples(1));
