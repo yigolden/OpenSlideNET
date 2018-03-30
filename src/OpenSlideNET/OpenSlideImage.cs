@@ -142,7 +142,7 @@ namespace OpenSlideNET
         /// </summary>
         /// <param name="level">the k level</param>
         /// <returns>The downsample factor for level k of the slide.</returns>
-        public double GetLevelDownsamples(int level)
+        public double GetLevelDownsample(int level)
         {
             EnsureNotDisposed();
 
@@ -152,16 +152,6 @@ namespace OpenSlideNET
                 ThrowHelper.CheckAndThrowError(_handle);
             }
             return result;
-        }
-
-        private string[] _properties;
-        private void EnsurePropertyListAcquired()
-        {
-            if (_properties == null)
-            {
-                _properties = Interop.GetPropertyNames(_handle);
-                ThrowHelper.CheckAndThrowError(_handle);
-            }
         }
 
         /// <summary>
@@ -293,9 +283,9 @@ namespace OpenSlideNET
         {
             EnsureNotDisposed();
 
-            _properties = Interop.GetPropertyNames(_handle);
+            string[] properties = Interop.GetPropertyNames(_handle);
             ThrowHelper.CheckAndThrowError(_handle);
-            return _properties;
+            return properties;
         }
 
         public bool TryGetProperty(string name, out string value)

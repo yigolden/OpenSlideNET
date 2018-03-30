@@ -100,7 +100,7 @@ namespace OpenSlideNET
             _slide_from_dz_level = l0_z_downsamples.Select(d => image.GetBestLevelForDownsample(d)).ToArray();
 
             // Piecewise downsamples
-            _l0_l_downsamples = Enumerable.Range(0, image.LevelCount).Select(l => image.GetLevelDownsamples(l)).ToArray();
+            _l0_l_downsamples = Enumerable.Range(0, image.LevelCount).Select(l => image.GetLevelDownsample(l)).ToArray();
             _l_z_downsamples = Enumerable.Range(0, _dz_levels).Select(dz_level => l0_z_downsamples[dz_level] / _l0_l_downsamples[_slide_from_dz_level[dz_level]]).ToArray();
         }
 

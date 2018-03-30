@@ -93,10 +93,10 @@ namespace OpenSlideNET.Tests
                 Assert.Equal<ValueTuple<long, long>>((75, 62), osr.GetLevelDimemsions(2));
                 Assert.Equal<ValueTuple<long, long>>((37, 31), osr.GetLevelDimemsions(3));
 
-                Assert.Equal(1, osr.GetLevelDownsamples(0));
-                Assert.Equal(2, osr.GetLevelDownsamples(1));
-                Assert.Equal(4, osr.GetLevelDownsamples(2), 0);
-                Assert.Equal(8, osr.GetLevelDownsamples(3), 0);
+                Assert.Equal(1, osr.GetLevelDownsample(0));
+                Assert.Equal(2, osr.GetLevelDownsample(1));
+                Assert.Equal(4, osr.GetLevelDownsample(2), 0);
+                Assert.Equal(8, osr.GetLevelDownsample(3), 0);
 
                 Assert.Equal(0, osr.GetBestLevelForDownsample(0.5));
                 Assert.Equal(1, osr.GetBestLevelForDownsample(3));
