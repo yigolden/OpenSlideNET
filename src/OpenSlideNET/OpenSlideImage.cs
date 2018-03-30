@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace OpenSlideNET
 {
-    public sealed class OpenSlideImage : IDisposable
+    public class OpenSlideImage : IDisposable
     {
         public static string LibraryVersion => Interop.GetVersion();
 
@@ -427,7 +427,7 @@ namespace OpenSlideNET
         public bool IsDisposed => _handle == IntPtr.Zero;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void EnsureNotDisposed()
+        protected void EnsureNotDisposed()
         {
             if (_handle == IntPtr.Zero)
             {
@@ -435,7 +435,7 @@ namespace OpenSlideNET
             }
         }
 
-        void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
             var handle = Interlocked.Exchange(ref _handle, IntPtr.Zero);
             if (handle != IntPtr.Zero)
@@ -444,19 +444,14 @@ namespace OpenSlideNET
             }
         }
 
-        // 仅当以上 Dispose(bool disposing) 拥有用于释放未托管资源的代码时才替代终结器。
         ~OpenSlideImage()
         {
-            // 请勿更改此代码。将清理代码放入以上 Dispose(bool disposing) 中。
             Dispose(false);
         }
 
-        // 添加此代码以正确实现可处置模式。
         public void Dispose()
         {
-            // 请勿更改此代码。将清理代码放入以上 Dispose(bool disposing) 中。
             Dispose(true);
-            // 如果在以上内容中替代了终结器，则取消注释以下行。
             GC.SuppressFinalize(this);
         }
         #endregion

@@ -5,10 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 
 namespace OpenSlideNET
 {
-    public sealed class DeepZoomGenerator : IDisposable
+    public class DeepZoomGenerator : IDisposable
     {
         private OpenSlideImage _image;
         private readonly bool _disposeImage;
@@ -24,7 +25,15 @@ namespace OpenSlideNET
         private double[] _l0_l_downsamples;
         private double[] _l_z_downsamples;
 
-        public OpenSlideImage Image => _image;
+        public OpenSlideImage Image
+        {
+            get
+            {
+                EnsureNotDisposed();
+
+                return _image;
+            }
+        }
 
         public DeepZoomGenerator(OpenSlideImage image, int tileSize = 254, int overlap = 1, bool limitBounds = true, bool disposeImage = false)
         {
@@ -219,6 +228,8 @@ namespace OpenSlideNET
         private const string DziTemplete = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Image xmlns=\"http://schemas.microsoft.com/deepzoom/2008\" Format=\"{FORMAT}\" Overlap=\"{OVERLAP}\" TileSize=\"{TILESIZE}\"><Size Height=\"{HEIGHT}\" Width=\"{WIDTH}\" /></Image>";
         public string GetDzi(string format = "jpeg")
         {
+            EnsureNotDisposed();
+
             var (width, height) = _l_dimemsions[0];
             var sb = new StringBuilder(DziTemplete);
             sb.Replace("{FORMAT}", format);
@@ -248,38 +259,29 @@ namespace OpenSlideNET
         }
 
         #region IDisposable Support
-        private bool disposedValue = false; // 要检测冗余调用
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        void EnsureNotDisposed()
+        protected void EnsureNotDisposed()
         {
-            if (disposedValue)
+            if (_image == null)
             {
                 throw new ObjectDisposedException(nameof(DeepZoomGenerator));
             }
         }
 
-        void Dispose(bool disposing)
+        protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (_image != null && disposing && _disposeImage)
             {
-                if (disposing)
+                var obj = Interlocked.Exchange(ref _image, null);
+                if (obj != null)
                 {
-                    // 释放托管状态(托管对象)。
-                    if (_disposeImage)
-                    {
-                        _image.Dispose();
-                    }
+                    obj.Dispose();
                 }
-
-                disposedValue = true;
             }
         }
 
-        // 添加此代码以正确实现可处置模式。
         public void Dispose()
         {
-            // 请勿更改此代码。将清理代码放入以上 Dispose(bool disposing) 中。
             Dispose(true);
         }
         #endregion
