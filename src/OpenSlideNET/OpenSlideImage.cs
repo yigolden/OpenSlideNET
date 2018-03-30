@@ -30,10 +30,6 @@ namespace OpenSlideNET
         public static OpenSlideImage Open(string filename)
         {
             FileInfo fileInfo = new FileInfo(filename);
-            if (!fileInfo.Exists)
-            {
-                throw new FileNotFoundException();
-            }
             // Open file using OpenSlide
             IntPtr handle = Interop.Open(filename);
             if (handle == IntPtr.Zero)
@@ -146,7 +142,7 @@ namespace OpenSlideNET
         /// </summary>
         /// <param name="level">the k level</param>
         /// <returns>The downsample factor for level k of the slide.</returns>
-        public double GetLevelDownsamples(int level)
+        public double GetLevelDownsample(int level)
         {
             EnsureNotDisposed();
 

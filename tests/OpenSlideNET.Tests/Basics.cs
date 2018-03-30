@@ -105,10 +105,10 @@ namespace OpenSlideNET.Tests
                 Assert.Equal(37, width);
                 Assert.Equal(31, height);
 
-                Assert.Equal(1, osr.GetLevelDownsamples(0));
-                Assert.Equal(2, osr.GetLevelDownsamples(1));
-                Assert.Equal(4, osr.GetLevelDownsamples(2), 0);
-                Assert.Equal(8, osr.GetLevelDownsamples(3), 0);
+                Assert.Equal(1, osr.GetLevelDownsample(0));
+                Assert.Equal(2, osr.GetLevelDownsample(1));
+                Assert.Equal(4, osr.GetLevelDownsample(2), 0);
+                Assert.Equal(8, osr.GetLevelDownsample(3), 0);
 
                 Assert.Equal(0, osr.GetBestLevelForDownsample(0.5));
                 Assert.Equal(1, osr.GetBestLevelForDownsample(3));
