@@ -30,10 +30,6 @@ namespace OpenSlideNET
         public static OpenSlideImage Open(string filename)
         {
             FileInfo fileInfo = new FileInfo(filename);
-            if (!fileInfo.Exists)
-            {
-                throw new FileNotFoundException();
-            }
             // Open file using OpenSlide
             IntPtr handle = Interop.Open(filename);
             if (handle == IntPtr.Zero)
