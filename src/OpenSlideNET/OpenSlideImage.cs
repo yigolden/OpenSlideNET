@@ -154,16 +154,6 @@ namespace OpenSlideNET
             return result;
         }
 
-        private string[] _properties;
-        private void EnsurePropertyListAcquired()
-        {
-            if (_properties == null)
-            {
-                _properties = Interop.GetPropertyNames(_handle);
-                ThrowHelper.CheckAndThrowError(_handle);
-            }
-        }
-
         /// <summary>
         /// Metadata about the slide.
         /// </summary>
@@ -293,9 +283,9 @@ namespace OpenSlideNET
         {
             EnsureNotDisposed();
 
-            _properties = Interop.GetPropertyNames(_handle);
+            string[] properties = Interop.GetPropertyNames(_handle);
             ThrowHelper.CheckAndThrowError(_handle);
-            return _properties;
+            return properties;
         }
 
         public bool TryGetProperty(string name, out string value)
