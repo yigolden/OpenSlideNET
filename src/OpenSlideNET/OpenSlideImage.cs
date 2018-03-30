@@ -211,19 +211,33 @@ namespace OpenSlideNET
             }
         }
 
-        public string MPPX
+        /// <summary>
+        /// Get microns per pixel in the left to right direction.
+        /// </summary>
+        public double? MicronsPerPixelX
         {
             get
             {
-                return this[Interop.OpenSlidePropertyNameMPPX];
+                if (TryGetProperty(Interop.OpenSlidePropertyNameMPPX, out string value) && double.TryParse(value, out double result))
+                {
+                    return result;
+                }
+                return null;
             }
         }
 
-        public string MPPY
+        /// <summary>
+        /// Get microns per pixel in the top to bottom direction.
+        /// </summary>
+        public double? MicronsPerPixelY
         {
             get
             {
-                return this[Interop.OpenSlidePropertyNameMPPY];
+                if (TryGetProperty(Interop.OpenSlidePropertyNameMPPY, out string value) && double.TryParse(value, out double result))
+                {
+                    return result;
+                }
+                return null;
             }
         }
 
