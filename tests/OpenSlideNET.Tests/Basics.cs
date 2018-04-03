@@ -75,9 +75,9 @@ namespace OpenSlideNET.Tests
             Assert.Empty(osr.GetAllAssociatedImageNames());
             osr.Dispose();
             Assert.Throws<ObjectDisposedException>(() => osr.LevelCount);
-            Assert.Throws<ObjectDisposedException>(() => osr.ReadRegionToArray(0, 0, 0, 100, 100));
+            Assert.Throws<ObjectDisposedException>(() => osr.ReadRegion(0, 0, 0, 100, 100));
             Assert.Throws<ObjectDisposedException>(() => osr.GetProperty("openslide.vendor", string.Empty));
-            Assert.Throws<ObjectDisposedException>(() => { osr.ReadAssociatedImageToArray("label", out var _); });
+            Assert.Throws<ObjectDisposedException>(() => { osr.ReadAssociatedImage("label", out var _); });
         }
 
         [Fact]
@@ -127,11 +127,11 @@ namespace OpenSlideNET.Tests
             using (var osr = OpenSlideImage.Open(Path.Combine(currentDir, "Assets", "boxes.tiff")))
             {
                 byte[] arr;
-                arr = osr.ReadRegionToArray(1, -10, -10, 400, 400);
+                arr = osr.ReadRegion(1, -10, -10, 400, 400);
                 Assert.Equal(400 * 400 * 4, arr.Length);
-                arr = osr.ReadRegionToArray(4, 0, 0, 100, 100); // Bad level
+                arr = osr.ReadRegion(4, 0, 0, 100, 100); // Bad level
                 Assert.Equal(100 * 100 * 4, arr.Length);
-                Assert.Throws<ArgumentOutOfRangeException>(() => { osr.ReadRegionToArray(1, 0, 0, 400, -5); });
+                Assert.Throws<ArgumentOutOfRangeException>(() => { osr.ReadRegion(1, 0, 0, 400, -5); });
             }
         }
 
@@ -143,11 +143,11 @@ namespace OpenSlideNET.Tests
             {
                 Assert.NotEmpty(osr.GetAllAssociatedImageNames());
                 byte[] arr;
-                arr = osr.ReadAssociatedImageToArray("thumbnail", out var dims);
+                arr = osr.ReadAssociatedImage("thumbnail", out var dims);
                 Assert.Equal(16, dims.Width);
                 Assert.Equal(16, dims.Height);
                 Assert.Equal(16 * 16 * 4, arr.Length);
-                Assert.Throws<KeyNotFoundException>(() => { osr.ReadAssociatedImageToArray("__missing", out var _); });
+                Assert.Throws<KeyNotFoundException>(() => { osr.ReadAssociatedImage("__missing", out var _); });
             }
         }
 
@@ -158,7 +158,7 @@ namespace OpenSlideNET.Tests
             using (var osr = OpenSlideImage.Open(Path.Combine(currentDir, "Assets", "unreadable.svs")))
             {
                 Assert.Equal("aperio", osr.GetProperty("openslide.vendor", string.Empty));
-                Assert.Throws<OpenSlideException>(() => { osr.ReadRegionToArray(0, 0, 0, 16, 16); });
+                Assert.Throws<OpenSlideException>(() => { osr.ReadRegion(0, 0, 0, 16, 16); });
                 // openslide object has turned into an unusable state.
                 Assert.False(osr.TryGetProperty("", out string value));
             }
@@ -171,7 +171,7 @@ namespace OpenSlideNET.Tests
             using (var osr = OpenSlideImage.Open(Path.Combine(currentDir, "Assets", "unreadable.svs")))
             {
                 Assert.Equal("aperio", osr.GetProperty("openslide.vendor", string.Empty));
-                Assert.Throws<OpenSlideException>(() => { osr.ReadAssociatedImageToArray("thumbnail", out var _); });
+                Assert.Throws<OpenSlideException>(() => { osr.ReadAssociatedImage("thumbnail", out var _); });
                 // openslide object has turned into an unusable state.
                 Assert.False(osr.TryGetProperty("", out string value));
             }

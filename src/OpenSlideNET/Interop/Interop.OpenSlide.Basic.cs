@@ -116,7 +116,7 @@ namespace OpenSlideNET
         /// <param name="w">The width of the region. Must be non-negative. </param>
         /// <param name="h">The height of the region. Must be non-negative. </param>
         [DllImport(LibOpenSlide, EntryPoint = "openslide_read_region", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void ReadRegion(IntPtr osr, IntPtr dest, long x, long y, int level, long w, long h);
+        internal static unsafe extern void ReadRegion(IntPtr osr, void* dest, long x, long y, int level, long w, long h);
 
         [DllImport(LibOpenSlide, EntryPoint = "openslide_close", CallingConvention = CallingConvention.Cdecl)]
         private static extern void Close_Internal(IntPtr osr);

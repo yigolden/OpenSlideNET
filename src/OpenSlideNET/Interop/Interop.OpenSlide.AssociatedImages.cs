@@ -54,7 +54,7 @@ namespace OpenSlideNET
         }
 
         [DllImport(LibOpenSlide, EntryPoint = "openslide_read_associated_image", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void ReadAssociatedImage_Internal(IntPtr osr, IntPtr name, IntPtr dest);
+        private static unsafe extern void ReadAssociatedImage_Internal(IntPtr osr, IntPtr name, void* dest);
 
         /// <summary>
         /// Copy pre-multiplied ARGB data from an associated image. 
@@ -63,7 +63,7 @@ namespace OpenSlideNET
         /// <param name="osr">The OpenSlide object. </param>
         /// <param name="name">The name of the desired associated image. Must be a valid name as given by openslide_get_associated_image_names(). </param>
         /// <param name="dest">The destination buffer for the ARGB data. </param>
-        internal static unsafe void ReadAssociatedImage(IntPtr osr, string name, IntPtr dest)
+        internal static unsafe void ReadAssociatedImage(IntPtr osr, string name, void* dest)
         {
             byte* pointer = stackalloc byte[64];
             UnsafeUtf8Encoder utf8Encoder = new UnsafeUtf8Encoder(pointer, 64);

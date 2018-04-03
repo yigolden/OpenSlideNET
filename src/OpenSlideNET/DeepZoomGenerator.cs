@@ -161,7 +161,7 @@ namespace OpenSlideNET
             EnsureNotDisposed();
 
             info = GetTileInfo(level, locationX, locationY);
-            return _image.ReadRegionToArray(info.SlideLevel, info.X, info.Y, info.Width, info.Height);
+            return _image.ReadRegion(info.SlideLevel, info.X, info.Y, info.Width, info.Height);
         }
 
         public TileInfo GetTileInfo(int level, int locationX, int locationY)
