@@ -35,18 +35,23 @@ namespace MultiSlideServer
             return false;
         }
 
-        public IDisposable CreateDeepZoomGenerator(string name, string path, out DeepZoomGenerator dz)
+        public RetainableDeepZoomGenerator RetainDeepZoomGenerator(string name, string path)
         {
-            if (!_cache.TryGet(name, out dz))
+            RetainableDeepZoomGenerator dz;
+            if (_cache.TryGet(name, out dz))
             {
-                dz = new DeepZoomGenerator(OpenSlideImage.Open(path), disposeImage: true);
-                if (!_cache.TrySet(name, dz))
-                {
-                    return dz;
-                }
+                dz.Retain();
+                return dz;
             }
-            return DummyDisposable.Instance;
-
+            dz = new RetainableDeepZoomGenerator(OpenSlideImage.Open(path));
+            if (_cache.TrySet(name, dz))
+            {
+                dz.Retain();
+                return dz;
+            }
+            dz.Retain();
+            dz.Dispose();
+            return dz;
         }
 
         private sealed class DummyDisposable : IDisposable

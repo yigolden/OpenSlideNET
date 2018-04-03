@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using MultiSlideServer.Cache;
 using OpenSlideNET;
 using System.Linq;
 using System.Text;
@@ -38,9 +39,14 @@ namespace MultiSlideServer.Controllers
             {
                 return NotFound();
             }
-            using (_provider.CreateDeepZoomGenerator(name, path, out DeepZoomGenerator dz))
+            RetainableDeepZoomGenerator dz = _provider.RetainDeepZoomGenerator(name, path);
+            try
             {
                 return Content(dz.GetDzi(), "application/xml", Encoding.UTF8);
+            }
+            finally
+            {
+                dz.Release();
             }
         }
     }

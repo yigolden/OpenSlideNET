@@ -67,10 +67,15 @@ namespace MultiSlideServer
                     return;
                 }
 
-                using (provider.CreateDeepZoomGenerator(result.name, path, out var dz))
+                RetainableDeepZoomGenerator dz = provider.RetainDeepZoomGenerator(result.name, path);
+                try
                 {
                     response.ContentType = "image/jpeg";
                     await dz.GetTileAsJpegToStreamAsync(result.level, result.col, result.row, response.Body);
+                }
+                finally
+                {
+                    dz.Release();
                 }
             });
 

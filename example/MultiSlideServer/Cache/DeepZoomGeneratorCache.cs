@@ -19,19 +19,19 @@ namespace MultiSlideServer.Cache
             (value as IDisposable)?.Dispose();
         }
 
-        public bool TryGet(string name, out DeepZoomGenerator dz)
+        public bool TryGet(string name, out RetainableDeepZoomGenerator dz)
         {
             return _cache.TryGetValue(name, out dz);
         }
 
-        public bool TrySet(string name, DeepZoomGenerator dz)
+        public bool TrySet(string name, RetainableDeepZoomGenerator dz)
         {
             var cacheEntryOption = new MemoryCacheEntryOptions
             {
                 SlidingExpiration = TimeSpan.FromMinutes(3)
             };
             cacheEntryOption.RegisterPostEvictionCallback(ItemEvicted);
-            DeepZoomGenerator cachedDz = _cache.Set(name, dz, cacheEntryOption);
+            RetainableDeepZoomGenerator cachedDz = _cache.Set(name, dz, cacheEntryOption);
             return ReferenceEquals(cachedDz, dz);
         }
     }
