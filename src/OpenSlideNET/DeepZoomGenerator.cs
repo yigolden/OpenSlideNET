@@ -217,7 +217,8 @@ namespace OpenSlideNET
                 Width = l_size_x,
                 Height = l_size_y,
                 TileWidth = z_size_x,
-                TileHeight = z_size_y
+                TileHeight = z_size_y,
+                ResizeNeeded = l_size_x != z_size_x || l_size_y != z_size_y
             };
         }
 
@@ -295,12 +296,7 @@ namespace OpenSlideNET
             public long Height { get; set; }
             public int TileWidth { get; set; }
             public int TileHeight { get; set; }
-
-            public bool ResizeNeeded
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => Width != TileWidth || Height != TileHeight;
-            }
+            public bool ResizeNeeded { get; set; }
         }
     }
 }
