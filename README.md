@@ -62,8 +62,7 @@ using (OpenSlideImage image = OpenSlideImage.Open(fileName))
     }
     // Alternatively, use GetTileAsJpeg to directly get JPEG encoded data.
     byte[] someTile = dz.GetTileAsJpeg(level: 0, locationX: 0, locationY: 0, out tileInfo);
-    // if you are using GetTileAsJpeg and friends, you do NOT need to resize image to (tileInfo.TileWidth, tileInfo.TileHeight) even though tileInfo.ResizeNeeded is true.
-    // TODO: In the future version, GetTileAsJpeg will set tileInfo.ResizeNeeded = false.
+    // if you are using GetTileAsJpeg and friends, you do NOT need to manually resize image to (tileInfo.TileWidth, tileInfo.TileHeight) as GetTileAsJpeg does this for you.
 }
 ```
 
@@ -76,16 +75,16 @@ To build this library, run the following command in the project root.
 dotnet build -c Release
 ```
 
-If the build is successful, NuGet packages for OpenSlideNET and OpenSlideNET.DeepZoom will be dropped in src\OpenSlideNET\bin\Release and src\OpenSlideNET.DeepZoom\bin\Release. Use the following command to publish these packages to your local NuGet repository. (Replace C:\Data\NugetReops with your local repository path.)
+If the build is successful, NuGet packages for OpenSlideNET and OpenSlideNET.ImageExtensions will be dropped in src\OpenSlideNET\bin\Release and src\OpenSlideNET.ImageExtensions\bin\Release. Use the following command to publish these packages to your local NuGet repository. (Replace C:\Data\NugetReops with your local repository path.)
 ```
-nuget add src\OpenSlideNET\bin\Release\OpenSlideNET.1.0.0-preview1-18021601.nupkg -Source C:\Data\NugetReops
-nuget add src\OpenSlideNET.DeepZoom\bin\Release\OpenSlideNET.DeepZoom.1.0.0-preview1-18021601.nupkg -Source C:\Data\NugetReops
+nuget add src\OpenSlideNET\bin\Release\OpenSlideNET.<version>.nupkg -Source C:\Data\NugetReops
+nuget add src\OpenSlideNET.ImageExtensions\bin\Release\OpenSlideNET.ImageExtensions.<version>.nupkg -Source C:\Data\NugetReops
 ```
 
 To use your build in a .NET Core project, run the follow command in your project root.
 ```
-dotnet add package OpenSlideNET --version 1.0.0-preview1-18021601 --source C:\Data\NugetReops
-dotnet add package OpenSlideNET.DeepZoom --version 1.0.0-preview1-18021601 --source C:\Data\NugetReops
+dotnet add package OpenSlideNET --version <version> --source C:\Data\NugetReops
+dotnet add package OpenSlideNET.ImageExtensions --version <version> --source C:\Data\NugetReops
 ```
 
 # Future work
