@@ -27,7 +27,7 @@ namespace OpenSlideNET
                 ctx.Apply(img =>
                 {
                     var frame = img.Frames.RootFrame;
-                    src.Image.DangerousReadRegionToBuffer(
+                    src.Image.DangerousReadRegion(
                         tileInfo.SlideLevel, tileInfo.X, tileInfo.Y, tileInfo.Width, tileInfo.Height,
                         ref Unsafe.As<Rgba32, byte>(ref frame.DangerousGetPinnableReferenceToPixelBuffer()));
                 });

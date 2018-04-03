@@ -61,7 +61,7 @@ namespace OpenSlideNET
                 {
                     var frame = img.Frames.RootFrame;
 
-                    image.DangerousReadRegionToBuffer(
+                    image.DangerousReadRegion(
                         level, 0, 0, levelWidth, levelHeight,
                         ref Unsafe.As<Rgba32, byte>(ref frame.DangerousGetPinnableReferenceToPixelBuffer()));
                 });

@@ -334,7 +334,7 @@ namespace OpenSlideNET
             return false;
         }
 
-        public byte[] ReadAssociatedImageToArray(string name, out ImageDimemsions dimemsions)
+        public unsafe byte[] ReadAssociatedImage(string name, out ImageDimemsions dimemsions)
         {
             EnsureNotDisposed();
 
@@ -346,27 +346,36 @@ namespace OpenSlideNET
             var data = new byte[dimemsions.Width * dimemsions.Height * 4];
             if (data.Length > 0)
             {
-                ReadAssociatedImage(name, ref data[0]);
+                fixed (void* pdata = &data[0])
+                {
+                    ReadAssociatedImageInternal(name, pdata);
+                }
             }
             return data;
         }
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void DangerousReadAssociatedImageToBuffer(string name, ref byte buffer)
+        public unsafe void DangerousReadAssociatedImage(string name, ref byte buffer)
         {
             EnsureNotDisposed();
-
-            ReadAssociatedImage(name, ref buffer);
-        }
-        private unsafe void ReadAssociatedImage(string name, ref byte data)
-        {
-            fixed (void* pdata = &data)
+            fixed (void* pdata = &buffer)
             {
-                Interop.ReadAssociatedImage(_handle, name, (IntPtr)pdata);
+                ReadAssociatedImageInternal(name, pdata);
             }
+        }
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public unsafe void DangerousReadAssociatedImage(string name, IntPtr buffer)
+        {
+            EnsureNotDisposed();
+            ReadAssociatedImageInternal(name, (void*)buffer);
+        }
+        private unsafe void ReadAssociatedImageInternal(string name, void* pointer)
+        {
+            Interop.ReadAssociatedImage(_handle, name, pointer);
             ThrowHelper.CheckAndThrowError(_handle);
         }
 
-        public byte[] ReadRegionToArray(int level, long x, long y, long width, long height)
+
+        public unsafe byte[] ReadRegion(int level, long x, long y, long width, long height)
         {
             EnsureNotDisposed();
 
@@ -376,24 +385,35 @@ namespace OpenSlideNET
                 throw new ArgumentOutOfRangeException(nameof(height));
 
             var data = new byte[width * height * 4];
-            ReadRegion(level, x, y, width, height, ref data[0]);
+            if (data.Length > 0)
+            {
+                fixed (void* pdata = &data[0])
+                {
+                    ReadRegionInternal(level, x, y, width, height, pdata);
+                }
+            }
             return data;
         }
 
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public void DangerousReadRegionToBuffer(int level, long x, long y, long width, long height, ref byte buffer)
+        public unsafe void DangerousReadRegion(int level, long x, long y, long width, long height, ref byte buffer)
         {
             EnsureNotDisposed();
 
-            ReadRegion(level, x, y, width, height, ref buffer);
-        }
-
-        private unsafe void ReadRegion(int level, long x, long y, long width, long height, ref byte data)
-        {
-            fixed (void* pdata = &data)
+            fixed (void* pdata = &buffer)
             {
-                Interop.ReadRegion(_handle, (IntPtr)pdata, x, y, level, width, height);
+                ReadRegionInternal(level, x, y, width, height, pdata);
             }
+        }
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public unsafe void DangerousReadRegion(int level, long x, long y, long width, long height, IntPtr buffer)
+        {
+            EnsureNotDisposed();
+            ReadRegionInternal(level, x, y, width, height, (void*)buffer);
+        }
+        private unsafe void ReadRegionInternal(int level, long x, long y, long width, long height, void* pointer)
+        {
+            Interop.ReadRegion(_handle, pointer, x, y, level, width, height);
             ThrowHelper.CheckAndThrowError(_handle);
         }
 
@@ -425,7 +445,7 @@ namespace OpenSlideNET
                 height = _height;
             }
 
-            public static implicit operator (long Width, long Height)(ImageDimemsions dimemsions)
+            public static implicit operator (long Width, long Height) (ImageDimemsions dimemsions)
             {
                 return (Width: dimemsions._width, Height: dimemsions._height);
             }
