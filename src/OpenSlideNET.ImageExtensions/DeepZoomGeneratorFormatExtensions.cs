@@ -34,6 +34,7 @@ namespace OpenSlideNET
                 if (tileInfo.ResizeNeeded)
                 {
                     ctx.Resize(tileInfo.TileWidth, tileInfo.TileHeight);
+                    tileInfo.ResizeNeeded = false;
                 }
             });
         }
