@@ -20,7 +20,7 @@ namespace OpenSlideNET
             return size < 81920 ? 81920 : size;
         }
 
-        private static void WriteImage(DeepZoomGenerator src, Image<Rgba32> dest, TileInfo tileInfo)
+        private static void WriteImage(DeepZoomGenerator src, Image<Bgra32> dest, TileInfo tileInfo)
         {
             dest.Mutate(ctx =>
             {
@@ -29,7 +29,7 @@ namespace OpenSlideNET
                     var frame = img.Frames.RootFrame;
                     src.Image.DangerousReadRegion(
                         tileInfo.SlideLevel, tileInfo.X, tileInfo.Y, tileInfo.Width, tileInfo.Height,
-                        ref Unsafe.As<Rgba32, byte>(ref frame.DangerousGetPinnableReferenceToPixelBuffer()));
+                        ref Unsafe.As<Bgra32, byte>(ref frame.DangerousGetPinnableReferenceToPixelBuffer()));
                 });
                 if (tileInfo.ResizeNeeded)
                 {
@@ -48,7 +48,7 @@ namespace OpenSlideNET
 
             var tileInfo = dz.GetTileInfo(level, locationX, locationY);
             info = tileInfo;
-            using (var image = new Image<Rgba32>((int)tileInfo.Width, (int)tileInfo.Height))
+            using (var image = new Image<Bgra32>((int)tileInfo.Width, (int)tileInfo.Height))
             {
                 WriteImage(dz, image, tileInfo);
 
@@ -78,7 +78,7 @@ namespace OpenSlideNET
 
             var tileInfo = dz.GetTileInfo(level, locationX, locationY);
 
-            using (var image = new Image<Rgba32>((int)tileInfo.Width, (int)tileInfo.Height))
+            using (var image = new Image<Bgra32>((int)tileInfo.Width, (int)tileInfo.Height))
             {
                 WriteImage(dz, image, tileInfo);
 
@@ -109,7 +109,7 @@ namespace OpenSlideNET
 
             var tileInfo = dz.GetTileInfo(level, locationX, locationY);
 
-            using (var image = new Image<Rgba32>((int)tileInfo.Width, (int)tileInfo.Height))
+            using (var image = new Image<Bgra32>((int)tileInfo.Width, (int)tileInfo.Height))
             {
                 WriteImage(dz, image, tileInfo);
 
@@ -126,7 +126,7 @@ namespace OpenSlideNET
 
             var tileInfo = dz.GetTileInfo(level, locationX, locationY);
 
-            using (var image = new Image<Rgba32>((int)tileInfo.Width, (int)tileInfo.Height))
+            using (var image = new Image<Bgra32>((int)tileInfo.Width, (int)tileInfo.Height))
             {
                 WriteImage(dz, image, tileInfo);
 
@@ -158,7 +158,7 @@ namespace OpenSlideNET
 
             var tileInfo = dz.GetTileInfo(level, locationX, locationY);
             info = tileInfo;
-            using (var image = new Image<Rgba32>((int)tileInfo.Width, (int)tileInfo.Height))
+            using (var image = new Image<Bgra32>((int)tileInfo.Width, (int)tileInfo.Height))
             {
                 WriteImage(dz, image, tileInfo);
 
@@ -188,7 +188,7 @@ namespace OpenSlideNET
 
             var tileInfo = dz.GetTileInfo(level, locationX, locationY);
 
-            using (var image = new Image<Rgba32>((int)tileInfo.Width, (int)tileInfo.Height))
+            using (var image = new Image<Bgra32>((int)tileInfo.Width, (int)tileInfo.Height))
             {
                 WriteImage(dz, image, tileInfo);
 
@@ -219,7 +219,7 @@ namespace OpenSlideNET
 
             var tileInfo = dz.GetTileInfo(level, locationX, locationY);
 
-            using (var image = new Image<Rgba32>((int)tileInfo.Width, (int)tileInfo.Height))
+            using (var image = new Image<Bgra32>((int)tileInfo.Width, (int)tileInfo.Height))
             {
                 WriteImage(dz, image, tileInfo);
 
@@ -236,7 +236,7 @@ namespace OpenSlideNET
 
             var tileInfo = dz.GetTileInfo(level, locationX, locationY);
 
-            using (var image = new Image<Rgba32>((int)tileInfo.Width, (int)tileInfo.Height))
+            using (var image = new Image<Bgra32>((int)tileInfo.Width, (int)tileInfo.Height))
             {
                 WriteImage(dz, image, tileInfo);
 

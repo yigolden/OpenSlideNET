@@ -19,7 +19,7 @@ namespace OpenSlideNET
             return size < 81920 ? 81920 : size;
         }
 
-        private static Image<Rgba32> GenerateThumbnail(OpenSlideImage image, int maxWidth, int maxHeight)
+        private static Image<Bgra32> GenerateThumbnail(OpenSlideImage image, int maxWidth, int maxHeight)
         {
             if (image == null)
             {
@@ -50,10 +50,10 @@ namespace OpenSlideNET
                 targetHeight = maxHeight;
             }
 
-            Image<Rgba32> output;
+            Image<Bgra32> output;
             checked
             {
-                output = new Image<Rgba32>((int)levelWidth, (int)levelHeight);
+                output = new Image<Bgra32>((int)levelWidth, (int)levelHeight);
             }
             output.Mutate(ctx =>
             {
@@ -63,7 +63,7 @@ namespace OpenSlideNET
 
                     image.DangerousReadRegion(
                         level, 0, 0, levelWidth, levelHeight,
-                        ref Unsafe.As<Rgba32, byte>(ref frame.DangerousGetPinnableReferenceToPixelBuffer()));
+                        ref Unsafe.As<Bgra32, byte>(ref frame.DangerousGetPinnableReferenceToPixelBuffer()));
                 });
                 ctx.Resize(targetWidth, targetHeight);
             });
