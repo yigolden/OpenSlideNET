@@ -22,15 +22,13 @@ namespace OpenSlideNET
 
         private static void WriteImage(DeepZoomGenerator src, Image<Bgra32> dest, TileInfo tileInfo)
         {
+            var frame = dest.Frames.RootFrame;
+            src.Image.DangerousReadRegion(
+                tileInfo.SlideLevel, tileInfo.X, tileInfo.Y, tileInfo.Width, tileInfo.Height,
+                ref Unsafe.As<Bgra32, byte>(ref frame.DangerousGetPinnableReferenceToPixelBuffer()));
+
             dest.Mutate(ctx =>
             {
-                ctx.Apply(img =>
-                {
-                    var frame = img.Frames.RootFrame;
-                    src.Image.DangerousReadRegion(
-                        tileInfo.SlideLevel, tileInfo.X, tileInfo.Y, tileInfo.Width, tileInfo.Height,
-                        ref Unsafe.As<Bgra32, byte>(ref frame.DangerousGetPinnableReferenceToPixelBuffer()));
-                });
                 if (tileInfo.ResizeNeeded)
                 {
                     ctx.Resize(tileInfo.TileWidth, tileInfo.TileHeight);
