@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace OpenSlideNET
 {
-    public static class OpenSlideImageExtensions
+    public static class OpenSlideImageThumbnailExtensions
     {
         private static int EnsureMinimumSize(int size)
         {
