@@ -8,11 +8,11 @@
   </PropertyGroup>
   
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
-    <PackageReference Include="System.ValueTuple" Version="4.5.0-rc1" />
+    <PackageReference Include="System.ValueTuple" Version="4.5.0" />
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="OpenSlideNET.NativeStubs" Version="1.0.0-preview3-18052601" />
+    <PackageReference Include="OpenSlideNET.NativeStubs" Version="1.0.0-preview4-18080601" />
   </ItemGroup>
 
 </Project>
