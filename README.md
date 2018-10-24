@@ -55,7 +55,7 @@ using (OpenSlideImage image = OpenSlideImage.Open(fileName))
     // Get raw tile data.
     DeepZoomGenerator.TileInfo tileInfo;
     byte[] rawTileData = dz.GetTile(level: 0, locationX: 0, locationY: 0, out tileInfo);
-    // rawTileData contains ARGB data for every pixel. rawTileData.Length == 4 * tileInfo.Width * tileInfo.Height
+    // rawTileData contains BGRA data for every pixel. rawTileData.Length == 4 * tileInfo.Width * tileInfo.Height
     if (tileInfo.ResizeNeeded)
     {
         // Code here to resize image from (tileInfo.Width, tileInfo.Height) to (tileInfo.TileWidth, tileInfo.TileHeight)
