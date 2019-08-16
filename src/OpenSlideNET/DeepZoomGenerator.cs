@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace OpenSlideNET
 {
-    public class DeepZoomGenerator : IDisposable
+    public sealed class DeepZoomGenerator : IDisposable
     {
         private OpenSlideImage _image;
         private readonly bool _disposeImage;

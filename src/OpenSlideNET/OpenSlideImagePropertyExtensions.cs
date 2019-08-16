@@ -2,6 +2,9 @@
 
 namespace OpenSlideNET
 {
+    /// <summary>
+    /// Helper class for reading properties of <see cref="OpenSlideImage"/>.
+    /// </summary>
     public static class OpenSlideImagePropertyExtensions
     {
         public static string GetProperty(this OpenSlideImage image, string name, string defaultValue)
