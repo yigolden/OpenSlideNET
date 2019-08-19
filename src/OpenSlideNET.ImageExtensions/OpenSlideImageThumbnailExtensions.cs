@@ -7,6 +7,7 @@ using System;
 using System.Buffers;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace OpenSlideNET
@@ -25,14 +26,14 @@ namespace OpenSlideNET
                 throw new ArgumentNullException(nameof(image));
             }
 
-            (long width, long height) = image.Dimemsions;
+            (long width, long height) = image.Dimensions;
 
             // 决定合适的level
             double downsampleWidth = width / (double)maxWidth;
             double downsampleHeight = height / (double)maxHeight;
             double downsample = Math.Max(downsampleWidth, downsampleHeight);
             int level = image.GetBestLevelForDownsample(downsample);
-            (long levelWidth, long levelHeight) = image.GetLevelDimemsions(level);
+            (long levelWidth, long levelHeight) = image.GetLevelDimensions(level);
 
             // 计算目标大小
             int targetWidth, targetHeight;
@@ -54,16 +55,11 @@ namespace OpenSlideNET
             {
                 output = new Image<Bgra32>((int)levelWidth, (int)levelHeight);
             }
+            image.ReadRegion(
+                level, 0, 0, levelWidth, levelHeight,
+                ref Unsafe.As<Bgra32, byte>(ref MemoryMarshal.GetReference(output.GetPixelSpan())));
             output.Mutate(ctx =>
             {
-                ctx.Apply(img =>
-                {
-                    var frame = img.Frames.RootFrame;
-
-                    image.DangerousReadRegion(
-                        level, 0, 0, levelWidth, levelHeight,
-                        ref Unsafe.As<Bgra32, byte>(ref frame.DangerousGetPinnableReferenceToPixelBuffer()));
-                });
                 ctx.Resize(targetWidth, targetHeight);
             });
             return output;

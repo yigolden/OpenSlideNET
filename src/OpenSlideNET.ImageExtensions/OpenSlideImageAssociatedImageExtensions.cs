@@ -6,6 +6,7 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace OpenSlideNET
@@ -19,13 +20,12 @@ namespace OpenSlideNET
 
         private static Image<Bgra32> WriteImage(OpenSlideImage image, string name)
         {
-            if (!image.TryGetAssociatedImageDimemsions(name, out var dims))
+            if (!image.TryGetAssociatedImageDimensions(name, out var dims))
             {
                 throw new KeyNotFoundException();
             }
             var dest = new Image<Bgra32>((int)dims.Width, (int)dims.Height);
-            var frame = dest.Frames.RootFrame;
-            image.DangerousReadAssociatedImage(name, ref Unsafe.As<Bgra32, byte>(ref frame.DangerousGetPinnableReferenceToPixelBuffer()));
+            image.ReadAssociatedImage(name, ref Unsafe.As<Bgra32, byte>(ref MemoryMarshal.GetReference(dest.GetPixelSpan())));
             return dest;
         }
 
