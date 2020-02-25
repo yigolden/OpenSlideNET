@@ -34,7 +34,7 @@ namespace OpenSlideNET.Tests
         {
             using (var osr = OpenSlideImage.Open(fileName))
             {
-                Assert.True(osr.SafeHandle.IsInvalid);
+                Assert.False(osr.SafeHandle.IsInvalid);
             }
         }
 
