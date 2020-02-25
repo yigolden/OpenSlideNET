@@ -34,7 +34,7 @@ namespace OpenSlideNET.Tests
         {
             using (var osr = OpenSlideImage.Open(fileName))
             {
-                Assert.True(osr.Handle != IntPtr.Zero);
+                Assert.True(osr.SafeHandle.IsInvalid);
             }
         }
 
@@ -88,10 +88,10 @@ namespace OpenSlideNET.Tests
             {
                 Assert.Equal(4, osr.LevelCount);
 
-                Assert.Equal<ValueTuple<long, long>>((300, 250), osr.GetLevelDimemsions(0));
-                Assert.Equal<ValueTuple<long, long>>((150, 125), osr.GetLevelDimemsions(1));
-                Assert.Equal<ValueTuple<long, long>>((75, 62), osr.GetLevelDimemsions(2));
-                Assert.Equal<ValueTuple<long, long>>((37, 31), osr.GetLevelDimemsions(3));
+                Assert.Equal<ValueTuple<long, long>>((300, 250), osr.GetLevelDimensions(0));
+                Assert.Equal<ValueTuple<long, long>>((150, 125), osr.GetLevelDimensions(1));
+                Assert.Equal<ValueTuple<long, long>>((75, 62), osr.GetLevelDimensions(2));
+                Assert.Equal<ValueTuple<long, long>>((37, 31), osr.GetLevelDimensions(3));
 
                 Assert.Equal(1, osr.GetLevelDownsample(0));
                 Assert.Equal(2, osr.GetLevelDownsample(1));

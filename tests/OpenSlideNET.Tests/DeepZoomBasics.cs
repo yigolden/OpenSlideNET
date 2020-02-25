@@ -16,7 +16,7 @@ namespace OpenSlideNET.Tests
                 Assert.Equal(10, dz.LevelCount);
                 Assert.Equal(11, dz.TileCount);
                 Assert.Equal(new(int, int)[] { (1, 1), (1, 1), (1, 1), (1, 1), (1, 1), (1, 1), (1, 1), (1, 1), (1, 1), (2, 1) }, dz.LevelTiles);
-                Assert.Equal(new(long, long)[] { (1, 1), (2, 1), (3, 2), (5, 4), (10, 8), (19, 16), (38, 32), (75, 63), (150, 125), (300, 250) }, dz.LevelDimemsions);
+                Assert.Equal(new(long, long)[] { (1, 1), (2, 1), (3, 2), (5, 4), (10, 8), (19, 16), (38, 32), (75, 63), (150, 125), (300, 250) }, dz.LevelDimensions);
             }
         }
 

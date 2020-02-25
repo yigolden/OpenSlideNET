@@ -1,11 +1,9 @@
-﻿using System;
+﻿using OpenSlideNET.Interop;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using OpenSlideNET.Interop;
 
 namespace OpenSlideNET
 {
@@ -20,12 +18,14 @@ namespace OpenSlideNET
         public static string LibraryVersion => OpenSlideInterop.GetVersion();
 
         private OpenSlideImageSafeHandle _handle;
+        private readonly bool _leaveOpen;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OpenSlideImage"/> class with the specified <see cref="OpenSlideImageSafeHandle"/>.
         /// </summary>
         /// <param name="handle"></param>
-        public OpenSlideImage(OpenSlideImageSafeHandle handle)
+        /// <param name="leaveOpen"></param>
+        public OpenSlideImage(OpenSlideImageSafeHandle handle, bool leaveOpen = false)
         {
             if (handle is null)
             {
@@ -36,18 +36,12 @@ namespace OpenSlideNET
                 throw new ArgumentException();
             }
             _handle = handle;
+            _leaveOpen = leaveOpen;
         }
-
-        /// <summary>
-        /// Gets the OpenSlide handle for this object.
-        /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public IntPtr Handle => _handle?.DangerousGetHandle() ?? throw new ObjectDisposedException(nameof(OpenSlideImage));
 
         /// <summary>
         /// Gets the OpenSlideImageSafeHandle for this object.
         /// </summary>
-        [EditorBrowsable(EditorBrowsableState.Never)]
         public OpenSlideImageSafeHandle SafeHandle => _handle ?? throw new ObjectDisposedException(nameof(OpenSlideImage));
 
         /// <summary>
@@ -654,7 +648,7 @@ namespace OpenSlideNET
             /// Converts the <see cref="ImageDimensions"/> struct into a tuple of (Width, Height).
             /// </summary>
             /// <param name="dimensions">the <see cref="ImageDimensions"/> struct.</param>
-            public static implicit operator (long Width, long Height) (ImageDimensions dimensions)
+            public static implicit operator (long Width, long Height)(ImageDimensions dimensions)
             {
                 return (Width: dimensions._width, Height: dimensions._height);
             }
@@ -690,7 +684,11 @@ namespace OpenSlideNET
         /// </summary>
         public void Dispose()
         {
-            Interlocked.Exchange(ref _handle, null)?.Dispose();
+            var handle = Interlocked.Exchange(ref _handle, null);
+            if (!(handle is null) && !_leaveOpen)
+            {
+                handle.Dispose();
+            }
         }
         #endregion
     }

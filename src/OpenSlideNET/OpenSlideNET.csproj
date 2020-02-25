@@ -12,7 +12,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="OpenSlideNET.Interop" Version="1.0.0-rc" />
+    <PackageReference Include="OpenSlideNET.Interop" Version="1.0.0-preview5-20022501" />
   </ItemGroup>
 
 </Project>
