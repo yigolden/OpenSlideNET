@@ -4,6 +4,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <IsPackable>false</IsPackable>
+    <RuntimeFrameworkVersion Condition=" '$(TargetFramework)' == 'netcoreapp2.1' ">2.1.16</RuntimeFrameworkVersion>
   </PropertyGroup>
 
   <ItemGroup>
