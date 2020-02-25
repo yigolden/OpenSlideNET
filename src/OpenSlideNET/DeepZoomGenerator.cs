@@ -17,8 +17,8 @@ namespace OpenSlideNET
         private readonly int _overlap;
 
         private (long x, long y) _l0_offset;
-        private (long width, long height)[] _l_dimemsions;
-        private List<(long width, long height)> _z_dimemsions;
+        private (long width, long height)[] _l_dimensions;
+        private List<(long width, long height)> _z_dimensions;
         private (int cols, int rows)[] _t_dimensions;
         private int _dz_levels;
         private int[] _slide_from_dz_level;
@@ -67,40 +67,40 @@ namespace OpenSlideNET
                 boundsHeight = boundsHeight == 0 ? image.Height : boundsHeight;
                 (double width, double height) _size_scale = (boundsWidth / (double)image.Width, boundsHeight / (double)image.Height);
                 // Dimensions of active area
-                _l_dimemsions = Enumerable.Range(0, image.LevelCount)
-                    .Select(i => image.GetLevelDimemsions(i))
+                _l_dimensions = Enumerable.Range(0, image.LevelCount)
+                    .Select(i => image.GetLevelDimensions(i))
                     .Select(l_size => ((long)Math.Ceiling(l_size.Width * _size_scale.width), (long)Math.Ceiling(l_size.Height * _size_scale.height)))
                     .ToArray();
             }
             else
             {
                 _l0_offset = (0, 0);
-                _l_dimemsions = Enumerable.Range(0, image.LevelCount)
-                    .Select(i => image.GetLevelDimemsions(i))
+                _l_dimensions = Enumerable.Range(0, image.LevelCount)
+                    .Select(i => image.GetLevelDimensions(i))
                     .Select(l_size => (l_size.Width, l_size.Height))
                     .ToArray();
             }
-            var _l0_dimemsions = _l_dimemsions[0];
+            var _l0_dimensions = _l_dimensions[0];
             // Deep Zoom level
-            var z_size = _l0_dimemsions;
-            var z_dimemsions = new List<(long width, long height)>();
-            z_dimemsions.Add(z_size);
+            var z_size = _l0_dimensions;
+            var z_dimensions = new List<(long width, long height)>();
+            z_dimensions.Add(z_size);
             while (z_size.width > 1 || z_size.height > 1)
             {
                 z_size = (width: Math.Max(1, (long)Math.Ceiling(z_size.width / 2d)), height: Math.Max(1, (long)Math.Ceiling(z_size.height / 2d)));
-                z_dimemsions.Add(z_size);
+                z_dimensions.Add(z_size);
             }
-            z_dimemsions.Reverse();
-            _z_dimemsions = z_dimemsions;
+            z_dimensions.Reverse();
+            _z_dimensions = z_dimensions;
             // Tile
             int tiles(long z_lim)
             {
                 return (int)Math.Ceiling(z_lim / (double)_tileSize);
             }
-            _t_dimensions = _z_dimemsions.Select(z => (tiles(z.width), tiles(z.height))).ToArray();
+            _t_dimensions = _z_dimensions.Select(z => (tiles(z.width), tiles(z.height))).ToArray();
 
             // Deep Zoom level count
-            _dz_levels = _z_dimemsions.Count;
+            _dz_levels = _z_dimensions.Count;
 
             // Total downsamples for each Deep Zoom level
             var l0_z_downsamples = Enumerable.Range(0, _dz_levels).Select(dz_level => Math.Pow(2, _dz_levels - dz_level - 1)).ToArray();
@@ -136,13 +136,13 @@ namespace OpenSlideNET
             }
         }
 
-        public IReadOnlyList<(long pixels_x, long pixels_y)> LevelDimemsions
+        public IReadOnlyList<(long pixels_x, long pixels_y)> LevelDimensions
         {
             get
             {
                 EnsureNotDisposed();
 
-                return _z_dimemsions;
+                return _z_dimensions;
             }
         }
 
@@ -192,7 +192,7 @@ namespace OpenSlideNET
             int z_overlap_b = locationY != t_dim.rows - 1 ? 1 : 0;
 
             // Get final size of the tile
-            var z_dim = _z_dimemsions[level];
+            var z_dim = _z_dimensions[level];
             int z_size_x = Math.Min(_tileSize, (int)(z_dim.width - _tileSize * locationX)) + z_overlap_l + z_overlap_r;
             int z_size_y = Math.Min(_tileSize, (int)(z_dim.height - _tileSize * locationY)) + z_overlap_t + z_overlap_b;
 
@@ -205,7 +205,7 @@ namespace OpenSlideNET
             // Round location down and size up, and add offset of active area
             var l0_location_x = (long)(_l0_from_l(slide_level, l_location_x) + _l0_offset.x);
             var l0_location_y = (long)(_l0_from_l(slide_level, l_location_y) + _l0_offset.y);
-            var l_dim = _l_dimemsions[slide_level];
+            var l_dim = _l_dimensions[slide_level];
             var l_size_x = (long)Math.Min(Math.Ceiling(_l_from_z(level, z_size_x)), l_dim.width - Math.Ceiling(l_location_x));
             var l_size_y = (long)Math.Min(Math.Ceiling(_l_from_z(level, z_size_y)), l_dim.height - Math.Ceiling(l_location_y));
 
@@ -231,7 +231,7 @@ namespace OpenSlideNET
         {
             EnsureNotDisposed();
 
-            var (width, height) = _l_dimemsions[0];
+            var (width, height) = _l_dimensions[0];
             var sb = new StringBuilder(DziTemplete);
             sb.Replace("{FORMAT}", format);
             sb.Replace("{OVERLAP}", _overlap.ToString());

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 
-namespace OpenSlideNET
+namespace OpenSlideNET.Interop
 {
-    internal static partial class Interop
+    public static partial class OpenSlideInterop
     {
 
         [DllImport(LibOpenSlide, EntryPoint = "openslide_get_error", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr GetError_Internal(IntPtr osr);
+        private static extern IntPtr GetErrorInternal(OpenSlideImageSafeHandle osr);
 
         /// <summary>
         /// Get the current error string. 
@@ -15,9 +15,9 @@ namespace OpenSlideNET
         /// </summary>
         /// <param name="osr">The OpenSlide object. </param>
         /// <returns>A string describing the original error that caused the problem, or NULL if no error has occurred. </returns>
-        internal static string GetError(IntPtr osr)
+        public static string GetError(OpenSlideImageSafeHandle osr)
         {
-            IntPtr pResult = GetError_Internal(osr);
+            IntPtr pResult = GetErrorInternal(osr);
             return StringFromNativeUtf8(pResult);
         }
     }

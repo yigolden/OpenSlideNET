@@ -1,18 +1,18 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace OpenSlideNET
+namespace OpenSlideNET.Interop
 {
-    internal static partial class Interop
+    public static partial class OpenSlideInterop
     {
         internal static unsafe string StringFromNativeUtf8(IntPtr nativeUtf8)
         {
             if (nativeUtf8 == IntPtr.Zero)
                 return null;
             int len = 0;
-            while (*(byte*)(nativeUtf8 + len) != 0) ++len;
+            while (*(byte*)(nativeUtf8 + len) != 0)
+                ++len;
             return Encoding.UTF8.GetString((byte*)nativeUtf8, len);
         }
 
@@ -31,7 +31,10 @@ namespace OpenSlideNET
 
             public unsafe IntPtr Encode(string value)
             {
-                Debug.Assert(value != null);
+                if (value is null)
+                {
+                    return IntPtr.Zero;
+                }
 
                 if (_handle != default)
                 {
@@ -57,7 +60,7 @@ namespace OpenSlideNET
 
             public void Dispose()
             {
-                if (_handle != default)
+                if (_handle.IsAllocated)
                 {
                     _handle.Free();
                     _handle = default;

@@ -7,6 +7,7 @@ using System;
 using System.Buffers;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using static OpenSlideNET.DeepZoomGenerator;
 
@@ -21,10 +22,9 @@ namespace OpenSlideNET
 
         private static void WriteImage(DeepZoomGenerator src, Image<Bgra32> dest, TileInfo tileInfo)
         {
-            var frame = dest.Frames.RootFrame;
-            src.Image.DangerousReadRegion(
+            src.Image.ReadRegion(
                 tileInfo.SlideLevel, tileInfo.X, tileInfo.Y, tileInfo.Width, tileInfo.Height,
-                ref Unsafe.As<Bgra32, byte>(ref frame.DangerousGetPinnableReferenceToPixelBuffer()));
+                ref Unsafe.As<Bgra32, byte>(ref MemoryMarshal.GetReference(dest.GetPixelSpan())));
 
             dest.Mutate(ctx =>
             {

@@ -2,9 +2,9 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace OpenSlideNET
+namespace OpenSlideNET.Interop
 {
-    internal static partial class Interop
+    public static partial class OpenSlideInterop
     {
 
         [DllImport(LibOpenSlide, EntryPoint = "openslide_detect_vendor", CallingConvention = CallingConvention.Cdecl)]
@@ -17,7 +17,7 @@ namespace OpenSlideNET
         /// </summary>
         /// <param name="filename">The filename to check. </param>
         /// <returns>An identification of the format vendor for this file, or NULL. </returns>
-        internal static unsafe string DetectVendor(string filename)
+        public static unsafe string DetectVendor(string filename)
         {
             Debug.Assert(filename != null);
 
@@ -35,7 +35,7 @@ namespace OpenSlideNET
         }
 
         [DllImport(LibOpenSlide, EntryPoint = "openslide_open", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr Open_Internal(IntPtr filename);
+        private static extern IntPtr OpenInternal(IntPtr filename);
 
         /// <summary>
         /// Open a whole slide image. 
@@ -43,14 +43,14 @@ namespace OpenSlideNET
         /// </summary>
         /// <param name="filename">The filename to open. </param>
         /// <returns>On success, a new OpenSlide object. If the file is not recognized by OpenSlide, NULL. If the file is recognized but an error occurred, an OpenSlide object in error state. </returns>
-        internal static unsafe IntPtr Open(string filename)
+        public static unsafe OpenSlideImageSafeHandle Open(string filename)
         {
             Debug.Assert(filename != null);
             byte* pointer = stackalloc byte[128];
             UnsafeUtf8Encoder utf8Encoder = new UnsafeUtf8Encoder(pointer, 128);
             try
             {
-                return Open_Internal(utf8Encoder.Encode(filename));
+                return new OpenSlideImageSafeHandle(OpenInternal(utf8Encoder.Encode(filename)));
             }
             finally
             {
@@ -58,13 +58,20 @@ namespace OpenSlideNET
             }
         }
 
+        [DllImport(LibOpenSlide, EntryPoint = "openslide_get_level_count", CallingConvention = CallingConvention.Cdecl)]
+        private static extern int GetLevelCountInternal(OpenSlideImageSafeHandle osr);
+
         /// <summary>
         /// Get the number of levels in the whole slide image. 
         /// </summary>
         /// <param name="osr">The OpenSlide object. </param>
         /// <returns>The number of levels, or -1 if an error occurred. </returns>
-        [DllImport(LibOpenSlide, EntryPoint = "openslide_get_level_count", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern int GetLevelCount(IntPtr osr);
+        public static int GetLevelCount(OpenSlideImageSafeHandle osr)
+            => GetLevelCountInternal(osr);
+
+
+        [DllImport(LibOpenSlide, EntryPoint = "openslide_get_level0_dimensions", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void GetLevel0DimensionsInternal(OpenSlideImageSafeHandle osr, out long w, out long h);
 
         /// <summary>
         /// Get the dimensions of level 0 (the largest level). 
@@ -73,8 +80,12 @@ namespace OpenSlideNET
         /// <param name="osr">The OpenSlide object. </param>
         /// <param name="w">The width of the image, or -1 if an error occurred. </param>
         /// <param name="h">The height of the image, or -1 if an error occurred. </param>
-        [DllImport(LibOpenSlide, EntryPoint = "openslide_get_level0_dimensions", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void GetLevel0Dimensions(IntPtr osr, out long w, out long h);
+        public static void GetLevel0Dimensions(OpenSlideImageSafeHandle osr, out long w, out long h)
+            => GetLevel0DimensionsInternal(osr, out w, out h);
+
+
+        [DllImport(LibOpenSlide, EntryPoint = "openslide_get_level_dimensions", CallingConvention = CallingConvention.Cdecl)]
+        private static extern void GetLevelDimensionsInternal(OpenSlideImageSafeHandle osr, int level, out long w, out long h);
 
         /// <summary>
         /// Get the dimensions of a level. 
@@ -83,8 +94,12 @@ namespace OpenSlideNET
         /// <param name="level">The desired level. </param>
         /// <param name="w">The width of the image, or -1 if an error occurred or the level was out of range. </param>
         /// <param name="h">The height of the image, or -1 if an error occurred or the level was out of range. </param>
-        [DllImport(LibOpenSlide, EntryPoint = "openslide_get_level_dimensions", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern void GetLevelDimensions(IntPtr osr, int level, out long w, out long h);
+        public static void GetLevelDimensions(OpenSlideImageSafeHandle osr, int level, out long w, out long h)
+            => GetLevelDimensionsInternal(osr, level, out w, out h);
+
+
+        [DllImport(LibOpenSlide, EntryPoint = "openslide_get_level_downsample", CallingConvention = CallingConvention.Cdecl)]
+        private static extern double GetLevelDownsampleInternal(OpenSlideImageSafeHandle osr, int level);
 
         /// <summary>
         /// Get the downsampling factor of a given level. 
@@ -92,8 +107,12 @@ namespace OpenSlideNET
         /// <param name="osr">The OpenSlide object.</param>
         /// <param name="level">The desired level. </param>
         /// <returns>The downsampling factor for this level, or -1.0 if an error occurred or the level was out of range. </returns>
-        [DllImport(LibOpenSlide, EntryPoint = "openslide_get_level_downsample", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern double GetLevelDownsample(IntPtr osr, int level);
+        public static double GetLevelDownsample(OpenSlideImageSafeHandle osr, int level)
+            => GetLevelDownsampleInternal(osr, level);
+
+
+        [DllImport(LibOpenSlide, EntryPoint = "openslide_get_best_level_for_downsample", CallingConvention = CallingConvention.Cdecl)]
+        internal static extern int GetBestLevelForDownsampleInternal(OpenSlideImageSafeHandle osr, double downsample);
 
         /// <summary>
         /// Get the best level to use for displaying the given downsample. 
@@ -101,8 +120,12 @@ namespace OpenSlideNET
         /// <param name="osr">The OpenSlide object.</param>
         /// <param name="downsample">The downsample factor.</param>
         /// <returns>The level identifier, or -1 if an error occurred.</returns>
-        [DllImport(LibOpenSlide, EntryPoint = "openslide_get_best_level_for_downsample", CallingConvention = CallingConvention.Cdecl)]
-        internal static extern int GetBestLevelForDownsample(IntPtr osr, double downsample);
+        public static int GetBestLevelForDownsample(OpenSlideImageSafeHandle osr, double downsample)
+            => GetBestLevelForDownsampleInternal(osr, downsample);
+
+
+        [DllImport(LibOpenSlide, EntryPoint = "openslide_read_region", CallingConvention = CallingConvention.Cdecl)]
+        private static unsafe extern void ReadRegionInternal(OpenSlideImageSafeHandle osr, void* dest, long x, long y, int level, long w, long h);
 
         /// <summary>
         /// Copy pre-multiplied ARGB data from a whole slide image. 
@@ -115,11 +138,11 @@ namespace OpenSlideNET
         /// <param name="level">The desired level. </param>
         /// <param name="w">The width of the region. Must be non-negative. </param>
         /// <param name="h">The height of the region. Must be non-negative. </param>
-        [DllImport(LibOpenSlide, EntryPoint = "openslide_read_region", CallingConvention = CallingConvention.Cdecl)]
-        internal static unsafe extern void ReadRegion(IntPtr osr, void* dest, long x, long y, int level, long w, long h);
+        public static unsafe void ReadRegion(OpenSlideImageSafeHandle osr, void* dest, long x, long y, int level, long w, long h)
+            => ReadRegionInternal(osr, dest, x, y, level, w, h);
 
         [DllImport(LibOpenSlide, EntryPoint = "openslide_close", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void Close_Internal(IntPtr osr);
+        private static extern void CloseInternal(IntPtr osr);
         private static readonly object s_closeLock = new object();
 
         /// <summary>
@@ -131,7 +154,7 @@ namespace OpenSlideNET
         {
             lock (s_closeLock)
             {
-                Close_Internal(osr);
+                CloseInternal(osr);
             }
         }
     }

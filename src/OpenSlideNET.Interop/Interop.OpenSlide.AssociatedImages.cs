@@ -2,12 +2,12 @@
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace OpenSlideNET
+namespace OpenSlideNET.Interop
 {
-    internal static partial class Interop
+    public static partial class OpenSlideInterop
     {
         [DllImport(LibOpenSlide, EntryPoint = "openslide_get_associated_image_names", CallingConvention = CallingConvention.Cdecl)]
-        private static extern IntPtr GetAssociatedImageNames_Internal(IntPtr osr);
+        private static extern IntPtr GetAssociatedImageNames_Internal(OpenSlideImageSafeHandle osr);
 
         /// <summary>
         /// Get the NULL-terminated array of associated image names. 
@@ -15,7 +15,7 @@ namespace OpenSlideNET
         /// </summary>
         /// <param name="osr">The OpenSlide object. </param>
         /// <returns>A NULL-terminated string array of associated image names, or an empty array if an error occurred. </returns>
-        public static unsafe string[] GetAssociatedImageNames(IntPtr osr)
+        public static unsafe string[] GetAssociatedImageNames(OpenSlideImageSafeHandle osr)
         {
             var list = new List<string>();
             IntPtr* pCurrent = (IntPtr*)GetAssociatedImageNames_Internal(osr);
@@ -29,7 +29,7 @@ namespace OpenSlideNET
         }
 
         [DllImport(LibOpenSlide, EntryPoint = "openslide_get_associated_image_dimensions", CallingConvention = CallingConvention.Cdecl)]
-        private static extern void GetAssociatedImageDimemsions_Internal(IntPtr osr, IntPtr name, out long w, out long h);
+        private static extern void GetAssociatedImageDimensions_Internal(OpenSlideImageSafeHandle osr, IntPtr name, out long w, out long h);
 
         /// <summary>
         /// Get the dimensions of an associated image. 
@@ -39,13 +39,13 @@ namespace OpenSlideNET
         /// <param name="name">The name of the desired associated image. Must be a valid name as given by openslide_get_associated_image_names(). </param>
         /// <param name="w">The width of the associated image, or -1 if an error occurred. </param>
         /// <param name="h">The height of the associated image, or -1 if an error occurred. </param>
-        internal static unsafe void GetAssociatedImageDimemsions(IntPtr osr, string name, out long w, out long h)
+        public static unsafe void GetAssociatedImageDimensions(OpenSlideImageSafeHandle osr, string name, out long w, out long h)
         {
             byte* pointer = stackalloc byte[64];
             UnsafeUtf8Encoder utf8Encoder = new UnsafeUtf8Encoder(pointer, 64);
             try
             {
-                GetAssociatedImageDimemsions_Internal(osr, utf8Encoder.Encode(name), out w, out h);
+                GetAssociatedImageDimensions_Internal(osr, utf8Encoder.Encode(name), out w, out h);
             }
             finally
             {
@@ -54,7 +54,7 @@ namespace OpenSlideNET
         }
 
         [DllImport(LibOpenSlide, EntryPoint = "openslide_read_associated_image", CallingConvention = CallingConvention.Cdecl)]
-        private static unsafe extern void ReadAssociatedImage_Internal(IntPtr osr, IntPtr name, void* dest);
+        private static unsafe extern void ReadAssociatedImage_Internal(OpenSlideImageSafeHandle osr, IntPtr name, void* dest);
 
         /// <summary>
         /// Copy pre-multiplied ARGB data from an associated image. 
@@ -63,7 +63,7 @@ namespace OpenSlideNET
         /// <param name="osr">The OpenSlide object. </param>
         /// <param name="name">The name of the desired associated image. Must be a valid name as given by openslide_get_associated_image_names(). </param>
         /// <param name="dest">The destination buffer for the ARGB data. </param>
-        internal static unsafe void ReadAssociatedImage(IntPtr osr, string name, void* dest)
+        public static unsafe void ReadAssociatedImage(OpenSlideImageSafeHandle osr, string name, void* dest)
         {
             byte* pointer = stackalloc byte[64];
             UnsafeUtf8Encoder utf8Encoder = new UnsafeUtf8Encoder(pointer, 64);

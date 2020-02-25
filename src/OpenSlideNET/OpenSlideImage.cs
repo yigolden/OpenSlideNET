@@ -1,47 +1,71 @@
-﻿using System;
+﻿using OpenSlideNET.Interop;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace OpenSlideNET
 {
-    public class OpenSlideImage : IDisposable
+    /// <summary>
+    /// A user-friendly wrapper class that operates on OpenSlide image.
+    /// </summary>
+    public sealed class OpenSlideImage : IDisposable
     {
-        public static string LibraryVersion => Interop.GetVersion();
+        /// <summary>
+        /// Gets the OpenSlide library version.
+        /// </summary>
+        public static string LibraryVersion => OpenSlideInterop.GetVersion();
 
-        private IntPtr _handle;
-        private FileInfo _fileInfo;
+        private OpenSlideImageSafeHandle _handle;
+        private readonly bool _leaveOpen;
 
-        internal OpenSlideImage(IntPtr handle, FileInfo fileInfo)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="OpenSlideImage"/> class with the specified <see cref="OpenSlideImageSafeHandle"/>.
+        /// </summary>
+        /// <param name="handle"></param>
+        /// <param name="leaveOpen"></param>
+        public OpenSlideImage(OpenSlideImageSafeHandle handle, bool leaveOpen = false)
         {
-            Debug.Assert(handle != IntPtr.Zero);
+            if (handle is null)
+            {
+                throw new ArgumentNullException(nameof(handle));
+            }
+            if (handle.IsInvalid)
+            {
+                throw new ArgumentException();
+            }
             _handle = handle;
-            _fileInfo = fileInfo;
+            _leaveOpen = leaveOpen;
         }
 
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public IntPtr Handle => _handle;
+        /// <summary>
+        /// Gets the OpenSlideImageSafeHandle for this object.
+        /// </summary>
+        public OpenSlideImageSafeHandle SafeHandle => _handle ?? throw new ObjectDisposedException(nameof(OpenSlideImage));
 
-        public DateTime LastWriteTimeUtc => _fileInfo.LastWriteTimeUtc;
-
+        /// <summary>
+        /// Open a whole slide image.
+        /// This function can be expensive; avoid calling it unnecessarily. For example, a tile server should not call Open() on every tile request. Instead, it should maintain a cache of <see cref="OpenSlideImage"/> objects and reuse them when possible.
+        /// </summary>
+        /// <param name="filename">The filename to open.</param>
+        /// <returns>The <see cref="OpenSlideImage"/> object.</returns>
+        /// <exception cref="OpenSlideUnsupportedFormatException">The file format can not be recognized.</exception>
+        /// <exception cref="OpenSlideException">The file format is recognized, but an error occurred when opening the file.</exception>
         public static OpenSlideImage Open(string filename)
         {
-            FileInfo fileInfo = new FileInfo(filename);
             // Open file using OpenSlide
-            IntPtr handle = Interop.Open(filename);
-            if (handle == IntPtr.Zero)
+            var handle = OpenSlideInterop.Open(filename);
+            if (handle.IsInvalid)
             {
                 throw new OpenSlideUnsupportedFormatException();
             }
             if (!ThrowHelper.TryCheckError(handle, out string errMsg))
             {
-                Interop.Close(handle);
+                handle.Dispose();
                 throw new OpenSlideException(errMsg);
             }
-            return new OpenSlideImage(handle, fileInfo);
+            return new OpenSlideImage(handle);
         }
 
         /// <summary>
@@ -52,7 +76,7 @@ namespace OpenSlideNET
         /// <returns>the format vendor of the specified file.</returns>
         public static string DetectFormat(string filename)
         {
-            return Interop.DetectVendor(filename);
+            return OpenSlideInterop.DetectVendor(filename);
         }
 
         /// <summary>
@@ -64,7 +88,7 @@ namespace OpenSlideNET
             {
                 EnsureNotDisposed();
 
-                int result = Interop.GetLevelCount(_handle);
+                int result = OpenSlideInterop.GetLevelCount(_handle);
                 if (result == -1)
                 {
                     ThrowHelper.CheckAndThrowError(_handle);
@@ -73,50 +97,59 @@ namespace OpenSlideNET
             }
         }
 
-        private ImageDimemsions? _dimemsionsCache = null;
-        private void EnsureDimemsionsCached()
+        private ImageDimensions? _dimensionsCache = null;
+        private void EnsureDimensionsCached()
         {
-            if (_dimemsionsCache == null)
+            if (_dimensionsCache == null)
             {
-                Interop.GetLevel0Dimensions(_handle, out long w, out long h);
+                OpenSlideInterop.GetLevel0Dimensions(_handle, out long w, out long h);
                 if (w == -1 || h == -1)
                 {
                     ThrowHelper.CheckAndThrowError(_handle);
                 }
-                _dimemsionsCache = new ImageDimemsions(w, h);
+                _dimensionsCache = new ImageDimensions(w, h);
             }
         }
+
         /// <summary>
         /// A (width, height) tuple for level 0 of the slide.
         /// </summary>
-        public ImageDimemsions Dimemsions
+        public ImageDimensions Dimensions
         {
             get
             {
                 EnsureNotDisposed();
-                EnsureDimemsionsCached();
+                EnsureDimensionsCached();
 
-                return _dimemsionsCache.Value;
+                return _dimensionsCache.Value;
             }
         }
+
+        /// <summary>
+        /// Width of the level 0 image of the slide.
+        /// </summary>
         public long Width
         {
             get
             {
                 EnsureNotDisposed();
-                EnsureDimemsionsCached();
+                EnsureDimensionsCached();
 
-                return _dimemsionsCache.Value.Width;
+                return _dimensionsCache.Value.Width;
             }
         }
+
+        /// <summary>
+        /// Height of the level 0 image of the slide.
+        /// </summary>
         public long Height
         {
             get
             {
                 EnsureNotDisposed();
-                EnsureDimemsionsCached();
+                EnsureDimensionsCached();
 
-                return _dimemsionsCache.Value.Height;
+                return _dimensionsCache.Value.Height;
             }
         }
 
@@ -125,16 +158,17 @@ namespace OpenSlideNET
         /// </summary>
         /// <param name="level">the k level</param>
         /// <returns>A (width, height) tuple for level k of the slide.</returns>
-        public ImageDimemsions GetLevelDimemsions(int level)
+        /// <exception cref="OpenSlideException">An error occurred when calling reading the slide or the <see cref="OpenSlideImage"/> was already in the error state.</exception>
+        public ImageDimensions GetLevelDimensions(int level)
         {
             EnsureNotDisposed();
 
-            Interop.GetLevelDimensions(_handle, level, out long w, out long h);
+            OpenSlideInterop.GetLevelDimensions(_handle, level, out long w, out long h);
             if (w == -1 || h == -1)
             {
                 ThrowHelper.CheckAndThrowError(_handle);
             }
-            return new ImageDimemsions(w, h);
+            return new ImageDimensions(w, h);
         }
 
         /// <summary>
@@ -142,11 +176,12 @@ namespace OpenSlideNET
         /// </summary>
         /// <param name="level">the k level</param>
         /// <returns>The downsample factor for level k of the slide.</returns>
+        /// <exception cref="OpenSlideException">An error occurred when calling reading the slide or the <see cref="OpenSlideImage"/> was already in the error state.</exception>
         public double GetLevelDownsample(int level)
         {
             EnsureNotDisposed();
 
-            double result = Interop.GetLevelDownsample(_handle, level);
+            double result = OpenSlideInterop.GetLevelDownsample(_handle, level);
             if (result == -1.0d)
             {
                 ThrowHelper.CheckAndThrowError(_handle);
@@ -155,10 +190,11 @@ namespace OpenSlideNET
         }
 
         /// <summary>
-        /// Metadata about the slide.
+        /// Gets the metadata about the slide.
         /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
+        /// <param name="name">The metadata key name.</param>
+        /// <returns>A string containing the metadata value or NULL if there is no such metadata.</returns>
+        /// <exception cref="OpenSlideException">An error occurred when calling reading the slide or the <see cref="OpenSlideImage"/> was already in the error state.</exception>
         [IndexerName("Property")]
         public string this[string name]
         {
@@ -166,48 +202,64 @@ namespace OpenSlideNET
             {
                 EnsureNotDisposed();
 
-                string value = Interop.GetPropertyValue(_handle, name);
+                string value = OpenSlideInterop.GetPropertyValue(_handle, name);
                 ThrowHelper.CheckAndThrowError(_handle);
                 return value;
             }
         }
+
+        /// <summary>
+        /// Gets the comment of the slide.
+        /// </summary>
         public string Comment
         {
             get
             {
-                return this[Interop.OpenSlidePropertyNameComment];
+                return this[OpenSlideInterop.OpenSlidePropertyNameComment];
             }
         }
 
+        /// <summary>
+        /// Gets the vendor of the slide.
+        /// </summary>
         public string Vendor
         {
             get
             {
-                return this[Interop.OpenSlidePropertyNameVendor];
+                return this[OpenSlideInterop.OpenSlidePropertyNameVendor];
             }
         }
 
+        /// <summary>
+        /// Gets the quick hash of the slide.
+        /// </summary>
         public string QuickHash1
         {
             get
             {
-                return this[Interop.OpenSlidePropertyNameQuickHash1];
+                return this[OpenSlideInterop.OpenSlidePropertyNameQuickHash1];
             }
         }
 
+        /// <summary>
+        /// Gets the background color of the slide.
+        /// </summary>
         public string BackgroundColor
         {
             get
             {
-                return this[Interop.OpenSlidePropertyNameBackgroundColor];
+                return this[OpenSlideInterop.OpenSlidePropertyNameBackgroundColor];
             }
         }
 
+        /// <summary>
+        /// Gets the objective color of the slide.
+        /// </summary>
         public string ObjectiveColor
         {
             get
             {
-                return this[Interop.OpenSlidePropertyNameObjectivePower];
+                return this[OpenSlideInterop.OpenSlidePropertyNameObjectivePower];
             }
         }
 
@@ -218,7 +270,7 @@ namespace OpenSlideNET
         {
             get
             {
-                if (TryGetProperty(Interop.OpenSlidePropertyNameMPPX, out string value) && double.TryParse(value, out double result))
+                if (TryGetProperty(OpenSlideInterop.OpenSlidePropertyNameMPPX, out string value) && double.TryParse(value, out double result))
                 {
                     return result;
                 }
@@ -233,7 +285,7 @@ namespace OpenSlideNET
         {
             get
             {
-                if (TryGetProperty(Interop.OpenSlidePropertyNameMPPY, out string value) && double.TryParse(value, out double result))
+                if (TryGetProperty(OpenSlideInterop.OpenSlidePropertyNameMPPY, out string value) && double.TryParse(value, out double result))
                 {
                     return result;
                 }
@@ -241,11 +293,14 @@ namespace OpenSlideNET
             }
         }
 
+        /// <summary>
+        /// The X coordinate of the rectangle bounding the non-empty region of the slide, if available.
+        /// </summary>
         public long? BoundsX
         {
             get
             {
-                if (TryGetProperty(Interop.OpenSlidePropertyNameBoundsX, out string value) && long.TryParse(value, out long result))
+                if (TryGetProperty(OpenSlideInterop.OpenSlidePropertyNameBoundsX, out string value) && long.TryParse(value, out long result))
                 {
                     return result;
                 }
@@ -253,11 +308,14 @@ namespace OpenSlideNET
             }
         }
 
+        /// <summary>
+        /// The Y coordinate of the rectangle bounding the non-empty region of the slide, if available.
+        /// </summary>
         public long? BoundsY
         {
             get
             {
-                if (TryGetProperty(Interop.OpenSlidePropertyNameBoundsY, out string value) && long.TryParse(value, out long result))
+                if (TryGetProperty(OpenSlideInterop.OpenSlidePropertyNameBoundsY, out string value) && long.TryParse(value, out long result))
                 {
                     return result;
                 }
@@ -265,11 +323,14 @@ namespace OpenSlideNET
             }
         }
 
+        /// <summary>
+        /// The width of the rectangle bounding the non-empty region of the slide, if available.
+        /// </summary>
         public long? BoundsWidth
         {
             get
             {
-                if (TryGetProperty(Interop.OpenSlidePropertyNameBoundsWidth, out string value) && long.TryParse(value, out long result))
+                if (TryGetProperty(OpenSlideInterop.OpenSlidePropertyNameBoundsWidth, out string value) && long.TryParse(value, out long result))
                 {
                     return result;
                 }
@@ -277,11 +338,14 @@ namespace OpenSlideNET
             }
         }
 
+        /// <summary>
+        /// The height of the rectangle bounding the non-empty region of the slide, if available.
+        /// </summary>
         public long? BoundsHeight
         {
             get
             {
-                if (TryGetProperty(Interop.OpenSlidePropertyNameBoundsHeight, out string value) && long.TryParse(value, out long result))
+                if (TryGetProperty(OpenSlideInterop.OpenSlidePropertyNameBoundsHeight, out string value) && long.TryParse(value, out long result))
                 {
                     return result;
                 }
@@ -292,58 +356,80 @@ namespace OpenSlideNET
         /// <summary>
         /// Get the array of property names. 
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The array of property names</returns>
         public IReadOnlyList<string> GetAllPropertyNames()
         {
             EnsureNotDisposed();
 
-            string[] properties = Interop.GetPropertyNames(_handle);
+            string[] properties = OpenSlideInterop.GetPropertyNames(_handle);
             ThrowHelper.CheckAndThrowError(_handle);
             return properties;
         }
 
+        /// <summary>
+        /// Gets the property value.
+        /// </summary>
+        /// <param name="name">The name of the property.</param>
+        /// <param name="value">The value of the property.</param>
+        /// <returns>True if the property of the specified name exists. Otherwise, false.</returns>
         public bool TryGetProperty(string name, out string value)
         {
             EnsureNotDisposed();
 
-            value = Interop.GetPropertyValue(_handle, name);
+            value = OpenSlideInterop.GetPropertyValue(_handle, name);
             return value != null;
         }
 
+        /// <summary>
+        /// Get the array of names of associated images. 
+        /// </summary>
+        /// <returns>The array of names of associated images.</returns>
         public IReadOnlyCollection<string> GetAllAssociatedImageNames()
         {
             EnsureNotDisposed();
 
-            var associatedImages = Interop.GetAssociatedImageNames(_handle);
+            var associatedImages = OpenSlideInterop.GetAssociatedImageNames(_handle);
             ThrowHelper.CheckAndThrowError(_handle);
             return associatedImages;
         }
 
-        public bool TryGetAssociatedImageDimemsions(string name, out ImageDimemsions dims)
+        /// <summary>
+        /// Gets the dimensions of the associated image.
+        /// </summary>
+        /// <param name="name">The name of the associated image.</param>
+        /// <param name="dimensions">The dimensions of the associated image.</param>
+        /// <returns>True if the associated image of the specified name exists. Otherwise, false.</returns>
+        public bool TryGetAssociatedImageDimensions(string name, out ImageDimensions dimensions)
         {
             EnsureNotDisposed();
 
-            Interop.GetAssociatedImageDimemsions(_handle, name, out long w, out long h);
+            OpenSlideInterop.GetAssociatedImageDimensions(_handle, name, out long w, out long h);
             if (w != -1 && h != -1)
             {
-                dims = new ImageDimemsions(w, h);
+                dimensions = new ImageDimensions(w, h);
                 return true;
             }
 
-            dims = default;
+            dimensions = default;
             return false;
         }
 
-        public unsafe byte[] ReadAssociatedImage(string name, out ImageDimemsions dimemsions)
+        /// <summary>
+        /// Copy pre-multiplied BGRA data from an associated image.
+        /// </summary>
+        /// <param name="name">The name of the associated image.</param>
+        /// <param name="dimensions">The dimensions of the associated image.</param>
+        /// <returns>The pixel data of the associated image.</returns>
+        public unsafe byte[] ReadAssociatedImage(string name, out ImageDimensions dimensions)
         {
             EnsureNotDisposed();
 
-            if (!TryGetAssociatedImageDimemsions(name, out dimemsions))
+            if (!TryGetAssociatedImageDimensions(name, out dimensions))
             {
                 throw new KeyNotFoundException();
             }
 
-            var data = new byte[dimemsions.Width * dimemsions.Height * 4];
+            var data = new byte[dimensions.Width * dimensions.Height * 4];
             if (data.Length > 0)
             {
                 fixed (void* pdata = &data[0])
@@ -353,8 +439,39 @@ namespace OpenSlideNET
             }
             return data;
         }
+
+        /// <summary>
+        /// Copy pre-multiplied BGRA data from an associated image.
+        /// </summary>
+        /// <param name="name">The name of the associated image.</param>
+        /// <param name="buffer">The destination buffer to hold the pixel data. Should be at least (width * height * 4) bytes in length</param>
+        public unsafe void ReadAssociatedImage(string name, Span<byte> buffer)
+        {
+            EnsureNotDisposed();
+
+            if (!TryGetAssociatedImageDimensions(name, out var dimensions))
+            {
+                throw new KeyNotFoundException();
+            }
+
+            if (buffer.Length < 4 * dimensions.Width * dimensions.Height)
+            {
+                throw new ArgumentException("Destination is too small.");
+            }
+
+            fixed (void* pdata = buffer)
+            {
+                ReadAssociatedImageInternal(name, pdata);
+            }
+        }
+
+        /// <summary>
+        /// Copy pre-multiplied BGRA data from an associated image.
+        /// </summary>
+        /// <param name="name">The name of the associated image.</param>
+        /// <param name="buffer">The destination buffer to hold the pixel data.</param>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public unsafe void DangerousReadAssociatedImage(string name, ref byte buffer)
+        public unsafe void ReadAssociatedImage(string name, ref byte buffer)
         {
             EnsureNotDisposed();
             fixed (void* pdata = &buffer)
@@ -362,19 +479,34 @@ namespace OpenSlideNET
                 ReadAssociatedImageInternal(name, pdata);
             }
         }
+
+        /// <summary>
+        /// Copy pre-multiplied BGRA data from an associated image.
+        /// </summary>
+        /// <param name="name">The name of the associated image.</param>
+        /// <param name="buffer">The destination buffer to hold the pixel data.</param>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public unsafe void DangerousReadAssociatedImage(string name, IntPtr buffer)
+        public unsafe void ReadAssociatedImage(string name, IntPtr buffer)
         {
             EnsureNotDisposed();
             ReadAssociatedImageInternal(name, (void*)buffer);
         }
+
         private unsafe void ReadAssociatedImageInternal(string name, void* pointer)
         {
-            Interop.ReadAssociatedImage(_handle, name, pointer);
+            OpenSlideInterop.ReadAssociatedImage(_handle, name, pointer);
             ThrowHelper.CheckAndThrowError(_handle);
         }
 
-
+        /// <summary>
+        /// Copy pre-multiplied BGRA data from a whole slide image.
+        /// </summary>
+        /// <param name="level">The desired level.</param>
+        /// <param name="x">The top left x-coordinate, in the level 0 reference frame.</param>
+        /// <param name="y">The top left y-coordinate, in the level 0 reference frame.</param>
+        /// <param name="width">The width of the region. Must be non-negative.</param>
+        /// <param name="height">The height of the region. Must be non-negative.</param>
+        /// <returns>The pixel data of this region.</returns>
         public unsafe byte[] ReadRegion(int level, long x, long y, long width, long height)
         {
             EnsureNotDisposed();
@@ -395,8 +527,41 @@ namespace OpenSlideNET
             return data;
         }
 
+        /// <summary>
+        /// Copy pre-multiplied BGRA data from a whole slide image.
+        /// </summary>
+        /// <param name="level">The desired level.</param>
+        /// <param name="x">The top left x-coordinate, in the level 0 reference frame.</param>
+        /// <param name="y">The top left y-coordinate, in the level 0 reference frame.</param>
+        /// <param name="width">The width of the region. Must be non-negative.</param>
+        /// <param name="height">The height of the region. Must be non-negative.</param>
+        /// <param name="buffer">The destination buffer for the BGRA data.</param>
+        public unsafe void ReadRegion(int level, long x, long y, long width, long height, Span<byte> buffer)
+        {
+            EnsureNotDisposed();
+
+            if (buffer.Length < 4 * width * height)
+            {
+                throw new ArgumentException("Destination is too small.");
+            }
+
+            fixed (void* pdata = buffer)
+            {
+                ReadRegionInternal(level, x, y, width, height, pdata);
+            }
+        }
+
+        /// <summary>
+        /// Copy pre-multiplied BGRA data from a whole slide image.
+        /// </summary>
+        /// <param name="level">The desired level.</param>
+        /// <param name="x">The top left x-coordinate, in the level 0 reference frame.</param>
+        /// <param name="y">The top left y-coordinate, in the level 0 reference frame.</param>
+        /// <param name="width">The width of the region. Must be non-negative.</param>
+        /// <param name="height">The height of the region. Must be non-negative.</param>
+        /// <param name="buffer">The destination buffer for the BGRA data.</param>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public unsafe void DangerousReadRegion(int level, long x, long y, long width, long height, ref byte buffer)
+        public unsafe void ReadRegion(int level, long x, long y, long width, long height, ref byte buffer)
         {
             EnsureNotDisposed();
 
@@ -405,88 +570,125 @@ namespace OpenSlideNET
                 ReadRegionInternal(level, x, y, width, height, pdata);
             }
         }
+
+        /// <summary>
+        /// Copy pre-multiplied BGRA data from a whole slide image.
+        /// </summary>
+        /// <param name="level">The desired level.</param>
+        /// <param name="x">The top left x-coordinate, in the level 0 reference frame.</param>
+        /// <param name="y">The top left y-coordinate, in the level 0 reference frame.</param>
+        /// <param name="width">The width of the region. Must be non-negative.</param>
+        /// <param name="height">The height of the region. Must be non-negative.</param>
+        /// <param name="buffer">The destination buffer for the BGRA data.</param>
         [EditorBrowsable(EditorBrowsableState.Never)]
-        public unsafe void DangerousReadRegion(int level, long x, long y, long width, long height, IntPtr buffer)
+        public unsafe void ReadRegion(int level, long x, long y, long width, long height, IntPtr buffer)
         {
             EnsureNotDisposed();
             ReadRegionInternal(level, x, y, width, height, (void*)buffer);
         }
         private unsafe void ReadRegionInternal(int level, long x, long y, long width, long height, void* pointer)
         {
-            Interop.ReadRegion(_handle, pointer, x, y, level, width, height);
+            OpenSlideInterop.ReadRegion(_handle, pointer, x, y, level, width, height);
             ThrowHelper.CheckAndThrowError(_handle);
         }
 
+        /// <summary>
+        /// Get the best level to use for displaying the given downsample.
+        /// </summary>
+        /// <param name="downsample">The downsample factor.</param>
+        /// <returns>The level identifier, or -1 if an error occurred.</returns>
         public int GetBestLevelForDownsample(double downsample)
         {
             EnsureNotDisposed();
 
-            return Interop.GetBestLevelForDownsample(_handle, downsample);
+            return OpenSlideInterop.GetBestLevelForDownsample(_handle, downsample);
         }
 
-
-        public readonly struct ImageDimemsions
+        /// <summary>
+        /// Represents the image dimensions
+        /// </summary>
+        public readonly struct ImageDimensions
         {
             private readonly long _width;
             private readonly long _height;
 
+            /// <summary>
+            /// The width of the image.
+            /// </summary>
             public long Width => _width;
+
+            /// <summary>
+            /// The height of the image.
+            /// </summary>
             public long Height => _height;
 
-            public ImageDimemsions(long width, long height)
+            /// <summary>
+            /// Initialize a new <see cref="ImageDimensions"/> struct.
+            /// </summary>
+            /// <param name="width">The width of the image.</param>
+            /// <param name="height">The height of the image.</param>
+            public ImageDimensions(long width, long height)
             {
                 _width = width;
                 _height = height;
             }
 
+            /// <summary>
+            /// Deconstruction the struct.
+            /// </summary>
+            /// <param name="width">The width of the image.</param>
+            /// <param name="height">The height of the image.</param>
             public void Deconstruct(out long width, out long height)
             {
                 width = _width;
                 height = _height;
             }
 
-            public static implicit operator (long Width, long Height) (ImageDimemsions dimemsions)
+            /// <summary>
+            /// Converts the <see cref="ImageDimensions"/> struct into a tuple of (Width, Height).
+            /// </summary>
+            /// <param name="dimensions">the <see cref="ImageDimensions"/> struct.</param>
+            public static implicit operator (long Width, long Height)(ImageDimensions dimensions)
             {
-                return (Width: dimemsions._width, Height: dimemsions._height);
+                return (Width: dimensions._width, Height: dimensions._height);
             }
 
-            public static explicit operator ImageDimemsions(ValueTuple<long, long> dimemsions)
+            /// <summary>
+            /// Converts a tuple of (Width, Height) into the <see cref="ImageDimensions"/> struct.
+            /// </summary>
+            /// <param name="dimensions">A tuple of (Width, Height).</param>
+            public static explicit operator ImageDimensions(ValueTuple<long, long> dimensions)
             {
-                return new ImageDimemsions(dimemsions.Item1, dimemsions.Item2);
+                return new ImageDimensions(dimensions.Item1, dimensions.Item2);
             }
         }
 
         #region IDisposable Support
 
-        public bool IsDisposed => _handle == IntPtr.Zero;
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected void EnsureNotDisposed()
+        private void EnsureNotDisposed()
         {
-            if (_handle == IntPtr.Zero)
+            if (_handle is null)
             {
-                throw new ObjectDisposedException(nameof(OpenSlideImage));
+                ThrowObjectDisposedException();
             }
         }
 
-        protected virtual void Dispose(bool disposing)
+        private static void ThrowObjectDisposedException()
         {
-            var handle = Interlocked.Exchange(ref _handle, IntPtr.Zero);
-            if (handle != IntPtr.Zero)
-            {
-                Interop.Close(handle);
-            }
+            throw new ObjectDisposedException(nameof(OpenSlideImage));
         }
 
-        ~OpenSlideImage()
-        {
-            Dispose(false);
-        }
-
+        /// <summary>
+        /// Dispose the <see cref="OpenSlideImage"/> object.
+        /// </summary>
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+            var handle = Interlocked.Exchange(ref _handle, null);
+            if (!(handle is null) && !_leaveOpen)
+            {
+                handle.Dispose();
+            }
         }
         #endregion
     }

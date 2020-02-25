@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Product>OpenSlideNET</Product>
+    <Authors>YiGolden</Authors>
+    <Copyright>Copyright (c) 2018-2019 yigolden</Copyright>
+    <Version>1.0.0-preview5-20022501</Version>
+    <InteropPackageVersion>1.0.0-preview5-20022501</InteropPackageVersion>
+    <PackageTags>openslide</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/yigolden/OpenSlideNET</PackageProjectUrl>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://github.com/yigolden/OpenSlideNET.git</RepositoryUrl>
+
+    <!-- Some dependencies havs not been strong signed -->
+    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)build\key.snk</AssemblyOriginatorKeyFile>
+    <!-- <SignAssembly>false</SignAssembly> -->
+  </PropertyGroup>
+</Project>
