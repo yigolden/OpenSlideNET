@@ -14,14 +14,14 @@ namespace OpenSlideNET
         /// <param name="name">The property name.</param>
         /// <param name="defaultValue">The value returned when the specified property does not exists.</param>
         /// <returns>The value of the property or <paramref name="defaultValue"/>.</returns>
-        public static string GetProperty(this OpenSlideImage image, string name, string defaultValue)
+        public static string? GetProperty(this OpenSlideImage image, string name, string? defaultValue)
         {
             if (image == null)
             {
                 throw new ArgumentNullException(nameof(image));
             }
 
-            if (!image.TryGetProperty(name, out string value))
+            if (!image.TryGetProperty(name, out string? value))
             {
                 return defaultValue;
             }
@@ -42,7 +42,7 @@ namespace OpenSlideNET
                 throw new ArgumentNullException(nameof(image));
             }
 
-            if (!image.TryGetProperty(name, out string value))
+            if (!image.TryGetProperty(name, out string? value))
             {
                 return defaultValue;
             }
@@ -68,7 +68,7 @@ namespace OpenSlideNET
                 throw new ArgumentNullException(nameof(image));
             }
 
-            if (!image.TryGetProperty(name, out string value))
+            if (!image.TryGetProperty(name, out string? value))
             {
                 return defaultValue;
             }
@@ -94,7 +94,7 @@ namespace OpenSlideNET
                 throw new ArgumentNullException(nameof(image));
             }
 
-            if (!image.TryGetProperty(name, out string value))
+            if (!image.TryGetProperty(name, out string? value))
             {
                 return defaultValue;
             }
@@ -120,7 +120,7 @@ namespace OpenSlideNET
                 throw new ArgumentNullException(nameof(image));
             }
 
-            if (!image.TryGetProperty(name, out string value))
+            if (!image.TryGetProperty(name, out string? value))
             {
                 return defaultValue;
             }
@@ -146,7 +146,7 @@ namespace OpenSlideNET
                 throw new ArgumentNullException(nameof(image));
             }
 
-            if (!image.TryGetProperty(name, out string value))
+            if (!image.TryGetProperty(name, out string? value))
             {
                 return defaultValue;
             }
@@ -172,7 +172,7 @@ namespace OpenSlideNET
                 throw new ArgumentNullException(nameof(image));
             }
 
-            if (!image.TryGetProperty(name, out string value))
+            if (!image.TryGetProperty(name, out string? value))
             {
                 return defaultValue;
             }
@@ -198,7 +198,7 @@ namespace OpenSlideNET
                 throw new ArgumentNullException(nameof(image));
             }
 
-            if (!image.TryGetProperty(name, out string value))
+            if (!image.TryGetProperty(name, out string? value))
             {
                 return defaultValue;
             }
@@ -224,7 +224,7 @@ namespace OpenSlideNET
                 throw new ArgumentNullException(nameof(image));
             }
 
-            if (!image.TryGetProperty(name, out string value))
+            if (!image.TryGetProperty(name, out string? value))
             {
                 return defaultValue;
             }

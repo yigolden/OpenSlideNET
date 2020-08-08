@@ -6,7 +6,7 @@ namespace OpenSlideNET.Interop
 {
     public static partial class OpenSlideInterop
     {
-        internal static unsafe string StringFromNativeUtf8(IntPtr nativeUtf8)
+        internal static unsafe string? StringFromNativeUtf8(IntPtr nativeUtf8)
         {
             if (nativeUtf8 == IntPtr.Zero)
                 return null;
@@ -29,7 +29,7 @@ namespace OpenSlideNET.Interop
                 _handle = default;
             }
 
-            public unsafe IntPtr Encode(string value)
+            public unsafe IntPtr Encode(string? value)
             {
                 if (value is null)
                 {

@@ -1,13 +1,11 @@
-﻿using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
+﻿using PooledGrowableBufferHelper;
+using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
-using System.Buffers;
 using System.IO;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using static OpenSlideNET.DeepZoomGenerator;
 
@@ -20,20 +18,20 @@ namespace OpenSlideNET
             return size < 81920 ? 81920 : size;
         }
 
-        private static void WriteImage(DeepZoomGenerator src, Image<Bgra32> dest, TileInfo tileInfo)
+        private static Image<Bgra32> ReadImage(DeepZoomGenerator src, TileInfo tileInfo)
         {
-            src.Image.ReadRegion(
-                tileInfo.SlideLevel, tileInfo.X, tileInfo.Y, tileInfo.Width, tileInfo.Height,
-                ref Unsafe.As<Bgra32, byte>(ref MemoryMarshal.GetReference(dest.GetPixelSpan())));
-
-            dest.Mutate(ctx =>
+            using var buffer = src.Image.ReadImageBuffer(tileInfo.SlideLevel, tileInfo.X, tileInfo.Y, tileInfo.Width, tileInfo.Height);
+            if (tileInfo.Width != tileInfo.TileWidth || tileInfo.Height != tileInfo.TileHeight)
             {
-                if (tileInfo.ResizeNeeded)
+                return buffer.GetImage().Clone(ctx =>
                 {
                     ctx.Resize(tileInfo.TileWidth, tileInfo.TileHeight);
-                    tileInfo.ResizeNeeded = false;
-                }
-            });
+                });
+            }
+            else
+            {
+                return buffer.GetImage().Clone();
+            }
         }
 
         public static byte[] GetTileAsJpeg(this DeepZoomGenerator dz, int level, int locationX, int locationY, out TileInfo info, int quality = 75)
@@ -43,27 +41,11 @@ namespace OpenSlideNET
                 throw new ArgumentNullException(nameof(dz));
             }
 
-            var tileInfo = dz.GetTileInfo(level, locationX, locationY);
-            info = tileInfo;
-            using (var image = new Image<Bgra32>((int)tileInfo.Width, (int)tileInfo.Height))
-            {
-                WriteImage(dz, image, tileInfo);
-
-                byte[] buffer = ArrayPool<byte>.Shared.Rent(EnsureMinimumSize(tileInfo.TileWidth * tileInfo.TileHeight * 4 * 2));
-                try
-                {
-                    using (var ms = new MemoryStream(buffer))
-                    {
-                        image.SaveAsJpeg(ms, new JpegEncoder() { Quality = quality });
-                        ms.SetLength(ms.Position);
-                        return ms.ToArray();
-                    }
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(buffer);
-                }
-            }
+            info = dz.GetTileInfo(level, locationX, locationY);
+            using var image = ReadImage(dz, info);
+            using var ms = PooledMemoryStreamManager.Shared.GetStream();
+            image.SaveAsJpeg(ms, new JpegEncoder { Quality = quality });
+            return ms.ToArray();
         }
 
         public static void GetTileAsJpegToStream(this DeepZoomGenerator dz, int level, int locationX, int locationY, Stream stream, int quality = 75)
@@ -73,28 +55,12 @@ namespace OpenSlideNET
                 throw new ArgumentNullException(nameof(dz));
             }
 
-            var tileInfo = dz.GetTileInfo(level, locationX, locationY);
-
-            using (var image = new Image<Bgra32>((int)tileInfo.Width, (int)tileInfo.Height))
-            {
-                WriteImage(dz, image, tileInfo);
-
-                byte[] buffer = ArrayPool<byte>.Shared.Rent(EnsureMinimumSize(tileInfo.TileWidth * tileInfo.TileHeight * 4 * 2));
-                try
-                {
-                    using (var ms = new MemoryStream(buffer))
-                    {
-                        image.SaveAsJpeg(ms, new JpegEncoder() { Quality = quality });
-                        ms.SetLength(ms.Position);
-                        ms.Position = 0;
-                        ms.CopyTo(stream);
-                    }
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(buffer);
-                }
-            }
+            var info = dz.GetTileInfo(level, locationX, locationY);
+            using var image = ReadImage(dz, info);
+            using var ms = PooledMemoryStreamManager.Shared.GetStream();
+            image.SaveAsJpeg(ms, new JpegEncoder { Quality = quality });
+            ms.Seek(0, SeekOrigin.Begin);
+            ms.CopyTo(stream);
         }
 
         public static void GetTileAsJpegToStream(this DeepZoomGenerator dz, int level, int locationX, int locationY, MemoryStream stream, int quality = 75)
@@ -104,45 +70,24 @@ namespace OpenSlideNET
                 throw new ArgumentNullException(nameof(dz));
             }
 
-            var tileInfo = dz.GetTileInfo(level, locationX, locationY);
-
-            using (var image = new Image<Bgra32>((int)tileInfo.Width, (int)tileInfo.Height))
-            {
-                WriteImage(dz, image, tileInfo);
-
-                image.SaveAsJpeg(stream, new JpegEncoder() { Quality = quality });
-            }
+            var info = dz.GetTileInfo(level, locationX, locationY);
+            using var image = ReadImage(dz, info);
+            image.SaveAsJpeg(stream, new JpegEncoder { Quality = quality });
         }
 
-        public static async Task GetTileAsJpegToStreamAsync(this DeepZoomGenerator dz, int level, int locationX, int locationY, Stream stream, int quality = 75)
+        public static async Task GetTileAsJpegToStreamAsync(this DeepZoomGenerator dz, int level, int locationX, int locationY, Stream stream, int quality = 75, CancellationToken cancellationToken = default)
         {
             if (dz == null)
             {
                 throw new ArgumentNullException(nameof(dz));
             }
 
-            var tileInfo = dz.GetTileInfo(level, locationX, locationY);
-
-            using (var image = new Image<Bgra32>((int)tileInfo.Width, (int)tileInfo.Height))
-            {
-                WriteImage(dz, image, tileInfo);
-
-                byte[] buffer = ArrayPool<byte>.Shared.Rent(EnsureMinimumSize(tileInfo.TileWidth * tileInfo.TileHeight * 4 * 2));
-                try
-                {
-                    using (var ms = new MemoryStream(buffer))
-                    {
-                        image.SaveAsJpeg(ms, new JpegEncoder() { Quality = quality });
-                        ms.SetLength(ms.Position);
-                        ms.Position = 0;
-                        await ms.CopyToAsync(stream).ConfigureAwait(false);
-                    }
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(buffer);
-                }
-            }
+            var info = dz.GetTileInfo(level, locationX, locationY);
+            using var image = ReadImage(dz, info);
+            using var ms = PooledMemoryStreamManager.Shared.GetStream();
+            image.SaveAsJpeg(ms, new JpegEncoder { Quality = quality });
+            ms.Seek(0, SeekOrigin.Begin);
+            await ms.CopyToAsync(stream, 4096, cancellationToken).ConfigureAwait(false);
         }
 
 
@@ -153,27 +98,11 @@ namespace OpenSlideNET
                 throw new ArgumentNullException(nameof(dz));
             }
 
-            var tileInfo = dz.GetTileInfo(level, locationX, locationY);
-            info = tileInfo;
-            using (var image = new Image<Bgra32>((int)tileInfo.Width, (int)tileInfo.Height))
-            {
-                WriteImage(dz, image, tileInfo);
-
-                byte[] buffer = ArrayPool<byte>.Shared.Rent(EnsureMinimumSize(tileInfo.TileWidth * tileInfo.TileHeight * 4 * 2));
-                try
-                {
-                    using (var ms = new MemoryStream(buffer))
-                    {
-                        image.SaveAsPng(ms);
-                        ms.SetLength(ms.Position);
-                        return ms.ToArray();
-                    }
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(buffer);
-                }
-            }
+            info = dz.GetTileInfo(level, locationX, locationY);
+            using var image = ReadImage(dz, info);
+            using var ms = PooledMemoryStreamManager.Shared.GetStream();
+            image.SaveAsPng(ms);
+            return ms.ToArray();
         }
 
         public static void GetTileAsPngToStream(this DeepZoomGenerator dz, int level, int locationX, int locationY, Stream stream)
@@ -183,28 +112,12 @@ namespace OpenSlideNET
                 throw new ArgumentNullException(nameof(dz));
             }
 
-            var tileInfo = dz.GetTileInfo(level, locationX, locationY);
-
-            using (var image = new Image<Bgra32>((int)tileInfo.Width, (int)tileInfo.Height))
-            {
-                WriteImage(dz, image, tileInfo);
-
-                byte[] buffer = ArrayPool<byte>.Shared.Rent(EnsureMinimumSize(tileInfo.TileWidth * tileInfo.TileHeight * 4 * 2));
-                try
-                {
-                    using (var ms = new MemoryStream(buffer))
-                    {
-                        image.SaveAsPng(ms);
-                        ms.SetLength(ms.Position);
-                        ms.Position = 0;
-                        ms.CopyTo(stream);
-                    }
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(buffer);
-                }
-            }
+            var info = dz.GetTileInfo(level, locationX, locationY);
+            using var image = ReadImage(dz, info);
+            using var ms = PooledMemoryStreamManager.Shared.GetStream();
+            image.SaveAsPng(ms);
+            ms.Seek(0, SeekOrigin.Begin);
+            ms.CopyTo(stream);
         }
 
         public static void GetTileAsPngToStream(this DeepZoomGenerator dz, int level, int locationX, int locationY, MemoryStream stream)
@@ -214,45 +127,24 @@ namespace OpenSlideNET
                 throw new ArgumentNullException(nameof(dz));
             }
 
-            var tileInfo = dz.GetTileInfo(level, locationX, locationY);
-
-            using (var image = new Image<Bgra32>((int)tileInfo.Width, (int)tileInfo.Height))
-            {
-                WriteImage(dz, image, tileInfo);
-
-                image.SaveAsPng(stream);
-            }
+            var info = dz.GetTileInfo(level, locationX, locationY);
+            using var image = ReadImage(dz, info);
+            image.SaveAsPng(stream);
         }
 
-        public static async Task GetTileAsPngToStreamAsync(this DeepZoomGenerator dz, int level, int locationX, int locationY, Stream stream)
+        public static async Task GetTileAsPngToStreamAsync(this DeepZoomGenerator dz, int level, int locationX, int locationY, Stream stream, CancellationToken cancellationToken = default)
         {
             if (dz == null)
             {
                 throw new ArgumentNullException(nameof(dz));
             }
 
-            var tileInfo = dz.GetTileInfo(level, locationX, locationY);
-
-            using (var image = new Image<Bgra32>((int)tileInfo.Width, (int)tileInfo.Height))
-            {
-                WriteImage(dz, image, tileInfo);
-
-                byte[] buffer = ArrayPool<byte>.Shared.Rent(EnsureMinimumSize(tileInfo.TileWidth * tileInfo.TileHeight * 4 * 2));
-                try
-                {
-                    using (var ms = new MemoryStream(buffer))
-                    {
-                        image.SaveAsPng(ms);
-                        ms.SetLength(ms.Position);
-                        ms.Position = 0;
-                        await ms.CopyToAsync(stream).ConfigureAwait(false);
-                    }
-                }
-                finally
-                {
-                    ArrayPool<byte>.Shared.Return(buffer);
-                }
-            }
+            var info = dz.GetTileInfo(level, locationX, locationY);
+            using var image = ReadImage(dz, info);
+            using var ms = PooledMemoryStreamManager.Shared.GetStream();
+            image.SaveAsPng(ms);
+            ms.Seek(0, SeekOrigin.Begin);
+            await ms.CopyToAsync(stream, 4096, cancellationToken).ConfigureAwait(false);
         }
     }
 }

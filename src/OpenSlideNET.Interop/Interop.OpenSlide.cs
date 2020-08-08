@@ -206,7 +206,7 @@ namespace OpenSlideNET.Interop
         public static string GetVersion()
         {
             IntPtr pResult = GetVersionInternal();
-            return StringFromNativeUtf8(pResult);
+            return StringFromNativeUtf8(pResult)!;
         }
     }
 }

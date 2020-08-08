@@ -2,14 +2,21 @@
 <Project Sdk="MSBuild.Sdk.Extras">
 
   <PropertyGroup>
+    <PackageId>OpenSlideNET.Interop</PackageId>
+    <Title>OpenSlideNET.Interop</Title>
     <Version>$(InteropPackageVersion)</Version>
+    <Description>Cross-platform interop helper for OpenSlideNET package.</Description>
     <TargetFrameworks>net46;netstandard2.0;netstandard2.1</TargetFrameworks>
-	<RuntimeIdentifiers>win;linux;osx</RuntimeIdentifiers>
-	<ExtrasBuildEachRuntimeIdentifier Condition="'$(TargetFramework)' != 'net46'">true</ExtrasBuildEachRuntimeIdentifier>
+    <RuntimeIdentifiers>win;linux;osx</RuntimeIdentifiers>
+    <ExtrasBuildEachRuntimeIdentifier Condition="'$(TargetFramework)' != 'net46'">true</ExtrasBuildEachRuntimeIdentifier>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <NoWarn>$(NoWarn);NU5131</NoWarn>
+    <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.1'">
-    <PackageReference Include="System.Memory" Version="4.5.3" />
+    <PackageReference Include="System.Memory" Version="$(SystemMemoryPackageVersion)" />
   </ItemGroup>
   
   <ItemGroup>

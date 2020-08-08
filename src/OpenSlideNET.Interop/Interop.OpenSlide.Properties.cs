@@ -22,8 +22,8 @@ namespace OpenSlideNET.Interop
             IntPtr* pCurrent = (IntPtr*)GetPropertyNamesInternal(osr);
             while (*pCurrent != IntPtr.Zero)
             {
-                string name = StringFromNativeUtf8(*pCurrent);
-                list.Add(name);
+                string? name = StringFromNativeUtf8(*pCurrent);
+                list.Add(name!);
                 pCurrent++;
             }
             return list.ToArray();
@@ -40,7 +40,7 @@ namespace OpenSlideNET.Interop
         /// <param name="osr">The OpenSlide object. </param>
         /// <param name="name">The name of the desired property. Must be a valid name as given by openslide_get_property_names().</param>
         /// <returns>The value of the named property, or NULL if the property doesn't exist or an error occurred. </returns>
-        public static unsafe string GetPropertyValue(OpenSlideImageSafeHandle osr, string name)
+        public static unsafe string? GetPropertyValue(OpenSlideImageSafeHandle osr, string name)
         {
             byte* pointer = stackalloc byte[64];
             UnsafeUtf8Encoder utf8Encoder = new UnsafeUtf8Encoder(pointer, 64);
@@ -62,7 +62,7 @@ namespace OpenSlideNET.Interop
         /// <param name="osr">The OpenSlide object. </param>
         /// <param name="utf8Name">The name of the desired property. Must be a valid name as given by openslide_get_property_names().</param>
         /// <returns>The value of the named property, or NULL if the property doesn't exist or an error occurred. </returns>
-        public static unsafe string GetPropertyValue(OpenSlideImageSafeHandle osr, ReadOnlySpan<byte> utf8Name)
+        public static unsafe string? GetPropertyValue(OpenSlideImageSafeHandle osr, ReadOnlySpan<byte> utf8Name)
         {
             if (utf8Name.IsEmpty || utf8Name[utf8Name.Length - 1] != 0)
             {

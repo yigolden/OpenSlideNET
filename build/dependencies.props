@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup Label="Package Versions">
+    <SystemBuffersPackageVersion>4.5.1</SystemBuffersPackageVersion>
+    <SystemMemoryPackageVersion>4.5.4</SystemMemoryPackageVersion>
+    <SystemRuntimeCompilerServicesUnsafePackageVersion>4.7.1</SystemRuntimeCompilerServicesUnsafePackageVersion>
+    <SystemValueTuplePackageVersion>4.5.0</SystemValueTuplePackageVersion>
+    
+    <PooledGrowableBufferHelperPackageVersion>1.0.5</PooledGrowableBufferHelperPackageVersion>
+    <SixLaborsImageSharpPackageVersion>1.0.0</SixLaborsImageSharpPackageVersion>
+  </PropertyGroup>
+</Project>

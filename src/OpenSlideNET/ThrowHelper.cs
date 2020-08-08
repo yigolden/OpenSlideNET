@@ -6,8 +6,8 @@ namespace OpenSlideNET
     {
         internal static void CheckAndThrowError(OpenSlideImageSafeHandle osr)
         {
-            string message = OpenSlideInterop.GetError(osr);
-            if (message != null)
+            string? message = OpenSlideInterop.GetError(osr);
+            if (!(message is null))
             {
                 ThrowOpenSlideException(message);
             }
@@ -18,7 +18,7 @@ namespace OpenSlideNET
             throw new OpenSlideException(message);
         }
 
-        internal static bool TryCheckError(OpenSlideImageSafeHandle osr, out string message)
+        internal static bool TryCheckError(OpenSlideImageSafeHandle osr, out string? message)
         {
             message = OpenSlideInterop.GetError(osr);
             return message == null;
