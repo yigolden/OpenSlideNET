@@ -16,6 +16,6 @@
     <RepositoryUrl>https://github.com/yigolden/OpenSlideNET.git</RepositoryUrl>
 
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)build\key.snk</AssemblyOriginatorKeyFile>
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
 </Project>
