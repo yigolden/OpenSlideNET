@@ -17,7 +17,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="OpenSlideNET.Interop" Version="1.0.0-rc1-20080802" />
+    <PackageReference Include="OpenSlideNET.Interop" Version="1.0.0" />
   </ItemGroup>
 
 </Project>
