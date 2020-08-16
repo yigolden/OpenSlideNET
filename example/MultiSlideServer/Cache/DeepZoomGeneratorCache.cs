@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
-using OpenSlideNET;
 using System;
 
 namespace MultiSlideServer.Cache

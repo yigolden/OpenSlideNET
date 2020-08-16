@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using MultiSlideServer.Cache;
-using OpenSlideNET;
 using System.Linq;
 using System.Text;
 

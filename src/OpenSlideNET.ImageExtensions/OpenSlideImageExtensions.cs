@@ -1,5 +1,4 @@
-﻿using OpenSlideNET;
-using SixLabors.ImageSharp;
+﻿using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Buffers;
