@@ -267,7 +267,7 @@ namespace OpenSlideNET
         {
             get
             {
-                if (TryGetProperty(OpenSlideInterop.OpenSlidePropertyNameMPPX, out string? value) && double.TryParse(value, out double result))
+                if (TryGetProperty(OpenSlideInterop.OpenSlidePropertyNameMPPX, out string? value) && double.TryParse(value, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double result))
                 {
                     return result;
                 }
@@ -282,7 +282,7 @@ namespace OpenSlideNET
         {
             get
             {
-                if (TryGetProperty(OpenSlideInterop.OpenSlidePropertyNameMPPY, out string? value) && double.TryParse(value, out double result))
+                if (TryGetProperty(OpenSlideInterop.OpenSlidePropertyNameMPPY, out string? value) && double.TryParse(value, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double result))
                 {
                     return result;
                 }
