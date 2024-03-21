@@ -3,6 +3,7 @@
   <PropertyGroup>
     <PackageId>OpenSlideNET.ImageExtensions</PackageId>
     <Title>OpenSlideNET.ImageExtensions</Title>
+    <Version>2.0.0</Version>	  
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <Description>.NET bindings for OpenSlide with Deep Zoom support.</Description>
   </PropertyGroup>

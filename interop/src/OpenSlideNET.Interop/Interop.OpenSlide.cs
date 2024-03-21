@@ -9,11 +9,11 @@ namespace OpenSlideNET.Interop
     public static partial class OpenSlideInterop
     {
 #if LINUX
-        internal const string LibOpenSlide = "libopenslide.so.0";
+        internal const string LibOpenSlide = "libopenslide.so.1";
 #elif OSX
-        internal const string LibOpenSlide = "libopenslide.0.dylib";
+        internal const string LibOpenSlide = "libopenslide.1.dylib";
 #else
-        internal const string LibOpenSlide = "libopenslide-0.dll";
+        internal const string LibOpenSlide = "libopenslide-1.dll";
 #endif
 
         /// <summary>

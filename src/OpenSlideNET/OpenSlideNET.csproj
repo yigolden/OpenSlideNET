@@ -3,6 +3,7 @@
   <PropertyGroup>
     <PackageId>OpenSlideNET</PackageId>
     <Title>OpenSlideNET</Title>
+    <Version>2.0.0</Version>	  
     <TargetFrameworks>net46;netstandard2.0;netstandard2.1;netcoreapp3.0</TargetFrameworks>
     <Description>.NET bindings for OpenSlide.</Description>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -17,7 +18,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="OpenSlideNET.Interop" Version="1.0.0" />
+    <PackageReference Include="OpenSlideNET.Interop" Version="2.0.0" />
   </ItemGroup>
 
 </Project>
