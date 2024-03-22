@@ -8,7 +8,7 @@
     <Authors>YiGolden</Authors>
     <Copyright>Copyright (c) 2018-2020 yigolden</Copyright>
     <Version>1.0.0</Version>
-    <InteropPackageVersion>1.0.0</InteropPackageVersion>
+    <InteropPackageVersion>2.0.0</InteropPackageVersion>
     <PackageTags>openslide</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/yigolden/OpenSlideNET</PackageProjectUrl>
